@@ -1,13 +1,10 @@
 import axiosInstance from './axiosInstance';
+import { ENDPOINTS } from '../config/environment';
 
-export const getAllHolidays = () =>
-  axiosInstance.get('/holidays');
+// Nota: Los endpoints para crear, obtener todos y eliminar feriados
+// no están implementados en el backend aún
 
-export const createHoliday = (data) =>
-  axiosInstance.post('/holidays/', data);
-
-export const deleteHoliday = (date) =>
-  axiosInstance.delete(`/holidays/${date}`);
-
-export const checkBusinessDay = (date) =>
-  axiosInstance.get(`/holidays/business-day?date=${date}`);
+export const checkBusinessDay = (date) => {
+  // Este endpoint está en /api/holidays, no en /core/v1/holidays
+  return axiosInstance.get(ENDPOINTS.HOLIDAYS.CHECK_BUSINESS_DAY(date));
+};

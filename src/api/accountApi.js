@@ -1,25 +1,29 @@
 import axiosInstance from './axiosInstance';
+import { ENDPOINTS } from '../config/environment';
 
 export const getAccountsByCustomer = (customerId) =>
-  axiosInstance.get(`/accounts?customerId=${customerId}`);
+  axiosInstance.get(ENDPOINTS.ACCOUNTS.GET_BY_CUSTOMER(customerId));
 
 export const getAccount = (accountNumber) =>
-  axiosInstance.get(`/accounts/${accountNumber}`);
+  axiosInstance.get(ENDPOINTS.ACCOUNTS.GET(accountNumber));
 
 export const createAccount = (data) =>
-  axiosInstance.post('/accounts/', data);
-
-export const activateAccount = (accountNumber) =>
-  axiosInstance.patch(`/accounts/${accountNumber}/activate`);
+  axiosInstance.post(ENDPOINTS.ACCOUNTS.CREATE, data);
 
 export const inactivateAccount = (accountNumber) =>
-  axiosInstance.patch(`/accounts/${accountNumber}/inactivate`);
+  axiosInstance.patch(ENDPOINTS.ACCOUNTS.INACTIVATE(accountNumber));
 
 export const blockAccount = (accountNumber) =>
-  axiosInstance.patch(`/accounts/${accountNumber}/block`);
+  axiosInstance.patch(ENDPOINTS.ACCOUNTS.BLOCK(accountNumber));
 
 export const suspendAccount = (accountNumber) =>
-  axiosInstance.patch(`/accounts/${accountNumber}/suspend`);
+  axiosInstance.patch(ENDPOINTS.ACCOUNTS.SUSPEND(accountNumber));
 
-export const getAccountTransactions = (accountNumber, limit = 10) =>
-  axiosInstance.get(`/accounts/${accountNumber}/transactions?limit=${limit}`);
+export const creditAccount = (accountNumber, data) =>
+  axiosInstance.post(ENDPOINTS.ACCOUNTS.CREDIT(accountNumber), data);
+
+export const transferFunds = (data) =>
+  axiosInstance.post(ENDPOINTS.ACCOUNTS.TRANSFER, data);
+
+export const getFavoriteAccount = () =>
+  axiosInstance.get(ENDPOINTS.ACCOUNTS.GET_FAVORITE);

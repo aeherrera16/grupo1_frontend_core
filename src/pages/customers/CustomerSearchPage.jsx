@@ -20,11 +20,28 @@ export const CustomerSearchPage = () => {
 
     setLoading(true);
     setError('');
+    setSearchResult(null);
     try {
       const response = await searchCustomer(identificationType, identificationNumber);
       setSearchResult(response.data);
+      setError('');
     } catch (err) {
-      setError(err.response?.data?.message || 'Error al buscar cliente');
+      // Manejo inteligente de errores
+      let errorMessage = 'Error al buscar cliente';
+
+      if (err.response?.status === 404) {
+        errorMessage = `No se encontró cliente con ${identificationType.toLowerCase()}: ${identificationNumber}`;
+      } else if (err.response?.status === 400) {
+        errorMessage = err.response?.data?.message || 'Datos inválidos. Verifique el número de identificación';
+      } else if (err.response?.status === 500) {
+        errorMessage = 'Error en el servidor. Intente más tarde';
+      } else if (!err.response) {
+        errorMessage = 'No se puede conectar al servidor';
+      } else {
+        errorMessage = err.response?.data?.message || errorMessage;
+      }
+
+      setError(errorMessage);
       setSearchResult(null);
     } finally {
       setLoading(false);
@@ -70,8 +87,14 @@ export const CustomerSearchPage = () => {
       </form>
 
       {error && (
-        <div className="bg-red-100 text-red-800 p-4 rounded mb-6">
-          {error}
+        <div className="bg-gradient-to-br from-orange-50 to-red-50 border-l-4 border-orange-500 p-4 rounded-lg mb-6">
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">⚠️</span>
+            <div>
+              <p className="font-semibold text-gray-900">Búsqueda sin resultados</p>
+              <p className="text-gray-700 text-sm mt-1">{error}</p>
+            </div>
+          </div>
         </div>
       )}
 

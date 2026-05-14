@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createCustomer, getCustomerSubtypes } from '../../api/customerApi';
+import { createCustomer } from '../../api/customerApi';
+// import { getCustomerSubtypes } from '../../api/customerApi'; // No implementado en backend aún
 import { getAllBranches } from '../../api/branchApi';
 import { validateEmail, validatePhone, validateIdentification } from '../../helpers/validators';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
@@ -35,8 +36,9 @@ export const CustomerCreatePage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const subtypesResponse = await getCustomerSubtypes();
-        setSubtypes(subtypesResponse.data || []);
+        // getCustomerSubtypes no implementado en backend aún
+        // const subtypesResponse = await getCustomerSubtypes();
+        // setSubtypes(subtypesResponse.data || []);
 
         const branchesResponse = await getAllBranches();
         setBranches(branchesResponse.data || []);

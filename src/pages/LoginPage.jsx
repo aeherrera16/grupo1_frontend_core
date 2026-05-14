@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { loginStaff } from '../api/authApi';
 import { useAuth } from '../hooks/useAuth';
 import heroImage from '../assets/banquito3.webp';
 
@@ -29,19 +28,27 @@ export function LoginPage() {
       return;
     }
 
+    if (!password) {
+      setError('Ingrese su contraseña');
+      return;
+    }
+
     setLoading(true);
     try {
-      const response = await loginStaff(username);
-
-      // Guardar en contexto
+      // Guardar en contexto (esto también hace la llamada a loginStaff)
       if (login) {
-        login(username);
+        await login(username, password);
       }
 
       // Navegar a dashboard
       navigate('/dashboard', { replace: true });
     } catch (err) {
-      setError(err.response?.data?.message || 'Error al iniciar sesión. Verifique su usuario.');
+      // Detectar si el error es porque el backend no está disponible
+      if (!err.response) {
+        setError('No se puede conectar al servidor. Verifique que el backend está disponible en localhost:8080');
+      } else {
+        setError(err.response?.data?.message || 'Error al iniciar sesión. Verifique su usuario.');
+      }
     } finally {
       setLoading(false);
     }
@@ -101,10 +108,8 @@ export function LoginPage() {
                 placeholder="Ingrese su contraseña"
                 disabled={loading}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent disabled:bg-gray-100"
+                required
               />
-              <p className="text-xs text-gray-500 mt-1">
-                Nota: Por ahora, la contraseña se envía vacía
-              </p>
             </div>
 
             <button

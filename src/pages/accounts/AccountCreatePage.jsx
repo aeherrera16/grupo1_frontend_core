@@ -92,7 +92,21 @@ export const AccountCreatePage = () => {
       const response = await createAccount(payload);
       navigate(`/cuentas/${response.data.accountNumber}`);
     } catch (err) {
-      setError(err.response?.data?.message || 'Error al crear cuenta');
+      let errorMessage = 'Error al crear cuenta';
+
+      if (err.response?.status === 400) {
+        errorMessage = err.response?.data?.message || 'Los datos ingresados no son válidos';
+      } else if (err.response?.status === 404) {
+        errorMessage = 'Cliente o sucursal no encontrado';
+      } else if (err.response?.status === 500) {
+        errorMessage = 'Error en el servidor. Intente más tarde';
+      } else if (!err.response) {
+        errorMessage = 'No se puede conectar al servidor';
+      } else {
+        errorMessage = err.response?.data?.message || errorMessage;
+      }
+
+      setError(errorMessage);
     } finally {
       setSubmitting(false);
     }

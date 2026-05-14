@@ -1,7 +1,8 @@
 import axiosInstance from './axiosInstance';
+import { ENDPOINTS } from '../config/environment';
 
-export const loginStaff = (username) =>
-  axiosInstance.post('/auth/login/staff', {
+export const loginStaff = (username, password) =>
+  axiosInstance.post(ENDPOINTS.AUTH.LOGIN_STAFF, {
     username,
-    password: '' // Sin seguridad aún
+    password
   });

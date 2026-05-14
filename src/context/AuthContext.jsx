@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { AuthContext } from './authContextObject';
 
-import { loginStaff, loginCustomer } from '../services/apiClient';
+import { loginStaff } from '../api/authApi';
 
 const staffPortals = new Set(['operador', 'cajero']);
 const STORAGE_KEY = 'banquito_auth';
@@ -24,40 +24,31 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  const login = async (portal, username, password) => {
-    const isStaff = staffPortals.has(portal);
-    let userData;
-
+  const login = async (username, password) => {
     try {
-      if (isStaff) {
-        const res = await loginStaff(username, password);
-        userData = {
-          id: res.coreUserId,
-          name: res.fullName,
-          username: res.username,
-          role: res.role,
-        };
-      } else {
-        const res = await loginCustomer(username, password);
-        userData = {
-          id: res.customerId,
-          credentialId: res.credentialId,
-          name: res.customerName,
-          username: res.username,
-          role: 'CUSTOMER',
-        };
-      }
+      const res = await loginStaff(username, password);
+
+      // Mapear correctamente los campos del backend
+      const userData = {
+        id: res.coreUserId,
+        name: res.fullName,
+        username: res.username,
+        role: res.role,
+        status: typeof res.status === 'string' ? res.status : res.status?.toString() || 'ACTIVO',
+      };
 
       const newAuth = {
         isAuthenticated: true,
-        portal,
+        portal: 'operador',
         user: userData,
       };
 
       setAuth(newAuth);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(newAuth));
+      console.log('✅ Usuario autenticado:', userData);
       return userData;
     } catch (err) {
+      console.error('❌ Error en login:', err);
       throw err;
     }
   };

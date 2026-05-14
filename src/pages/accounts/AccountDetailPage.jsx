@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getAccount, getAccountTransactions, activateAccount, inactivateAccount, blockAccount, suspendAccount } from '../../api/accountApi';
+import { getAccount, inactivateAccount, blockAccount, suspendAccount } from '../../api/accountApi';
+// getAccountTransactions, activateAccount no están implementados en backend
 import { formatCurrency, formatDate, formatDateTime, formatStatus } from '../../helpers/formatters';
 import StatusBadge from '../../components/ui/StatusBadge';
 import ConfirmModal from '../../components/ui/ConfirmModal';
@@ -22,8 +23,9 @@ export const AccountDetailPage = () => {
         const accountResponse = await getAccount(accountNumber);
         setAccount(accountResponse.data);
 
-        const transactionsResponse = await getAccountTransactions(accountNumber, 10);
-        setTransactions(transactionsResponse.data || []);
+        // getAccountTransactions no implementado en backend aún
+        // const transactionsResponse = await getAccountTransactions(accountNumber, 10);
+        // setTransactions(transactionsResponse.data || []);
       } catch (err) {
         setError(err.response?.data?.message || 'Error al cargar cuenta');
       } finally {
@@ -39,9 +41,9 @@ export const AccountDetailPage = () => {
     try {
       let response;
       switch (action) {
-        case 'activate':
-          response = await activateAccount(accountNumber);
-          break;
+        // case 'activate': // No implementado en backend aún
+        //   response = await activateAccount(accountNumber);
+        //   break;
         case 'inactivate':
           response = await inactivateAccount(accountNumber);
           break;
@@ -118,13 +120,13 @@ export const AccountDetailPage = () => {
           <div className="bg-white p-6 rounded-lg shadow mb-6">
             <h3 className="font-bold mb-4">Cambiar Estado</h3>
             <div className="flex flex-wrap gap-3">
-              <button
+              {/* <button
                 onClick={() => setConfirmModal({ isOpen: true, action: 'activate' })}
                 disabled={account.status === 'ACTIVO' || actionLoading}
                 className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:bg-gray-400"
               >
                 Activar
-              </button>
+              </button> */}
               <button
                 onClick={() => setConfirmModal({ isOpen: true, action: 'inactivate' })}
                 disabled={account.status === 'INACTIVO' || actionLoading}

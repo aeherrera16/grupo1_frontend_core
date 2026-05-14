@@ -31,12 +31,14 @@ import { NotificationsPage } from './pages/NotificationsPage';
 import './index.css';
 
 const IntranetLayout = () => (
-  <div className="flex h-screen bg-gray-100">
-    <Sidebar />
-    <div className="flex flex-col flex-1">
-      <Topbar />
-      <main className="flex-1 overflow-auto p-6">
-        <Outlet />
+  <div className="flex flex-col h-screen bg-gray-50">
+    <Topbar />
+    <div className="flex flex-1 overflow-hidden">
+      <Sidebar />
+      <main className="flex-1 overflow-auto">
+        <div className="p-8">
+          <Outlet />
+        </div>
       </main>
     </div>
   </div>
