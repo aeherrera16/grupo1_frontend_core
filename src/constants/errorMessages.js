@@ -1,0 +1,15 @@
+export const ERROR_MESSAGES = {
+  NETWORK_ERROR: 'Error de conexión. Por favor, intente nuevamente.',
+  INVALID_CREDENTIALS: 'Usuario o contraseña inválidos.',
+  USER_NOT_FOUND: 'El usuario no fue encontrado.',
+  CUSTOMER_NOT_FOUND: 'El cliente no fue encontrado.',
+  ACCOUNT_NOT_FOUND: 'La cuenta no fue encontrada.',
+  INSUFFICIENT_BALANCE: 'Saldo insuficiente para completar la transacción.',
+  INVALID_EMAIL: 'El correo electrónico no es válido.',
+  INVALID_PHONE: 'El teléfono no es válido.',
+  INVALID_IDENTIFICATION: 'El número de identificación no es válido.',
+  REQUIRED_FIELD: 'Este campo es requerido.',
+  UNAUTHORIZED: 'No tiene permisos para realizar esta acción.',
+  SESSION_EXPIRED: 'Su sesión ha expirado. Por favor, inicie sesión nuevamente.',
+  UNEXPECTED_ERROR: 'Ocurrió un error inesperado. Por favor, intente nuevamente.',
+};
