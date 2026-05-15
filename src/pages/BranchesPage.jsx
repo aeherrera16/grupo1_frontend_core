@@ -50,11 +50,13 @@ export const BranchesPage = () => {
     setSubmitting(true);
     try {
       const payload = {
-        branchCode: formData.code, // <- Se mapea al nombre que espera el backend
+        branchCode: formData.code,
         name: formData.name,
         city: formData.city
       };
       await createBranch(payload);
+      await fetchBranches();
+      setModalOpen(false);
     } catch (err) {
       setError(err.response?.data?.message || 'Error al crear sucursal');
     } finally {

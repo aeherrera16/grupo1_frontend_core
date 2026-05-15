@@ -91,7 +91,7 @@ export const CustomerDetailPage = () => {
               </div>
               <div>
                 <p className="text-gray-600 text-sm">Teléfono</p>
-                <p className="font-semibold">{customer.phone}</p>
+                <p className="font-semibold">{customer.mobilePhone}</p>
               </div>
               <div>
                 <p className="text-gray-600 text-sm">Dirección</p>
