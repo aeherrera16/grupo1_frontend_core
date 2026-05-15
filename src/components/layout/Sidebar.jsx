@@ -5,17 +5,15 @@ import {
   UserPlus,
   Repeat,
   Building2,
-  Bell,
   Menu,
 } from 'lucide-react';
 
 const menuItems = [
-  { path: '/dashboard',           label: 'Dashboard',      Icon: LayoutDashboard },
-  { path: '/clientes',            label: 'Clientes',       Icon: Users },
-  { path: '/cuentas/nueva',       label: 'Nueva Cuenta',   Icon: UserPlus },
-  { path: '/transacciones/nueva', label: 'Transacciones',  Icon: Repeat },
-  { path: '/sucursales',          label: 'Sucursales',     Icon: Building2 },
-  { path: '/notificaciones',      label: 'Notificaciones', Icon: Bell },
+  { path: '/dashboard',           label: 'Dashboard',     Icon: LayoutDashboard },
+  { path: '/clientes',            label: 'Clientes',      Icon: Users },
+  { path: '/cuentas/nueva',       label: 'Nueva Cuenta',  Icon: UserPlus },
+  { path: '/transacciones/nueva', label: 'Transacciones', Icon: Repeat },
+  { path: '/sucursales',          label: 'Sucursales',    Icon: Building2 },
 ];
 
 const Sidebar = ({ isOpen, onToggle }) => {

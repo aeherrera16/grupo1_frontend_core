@@ -28,7 +28,6 @@ import { TransactionHistoryPage } from './pages/transactions/TransactionHistoryP
 
 // Pages - Módulos Secundarios
 import { BranchesPage } from './pages/BranchesPage';
-import { NotificationsPage } from './pages/NotificationsPage';
 
 import './index.css';
 
@@ -90,7 +89,6 @@ const router = createBrowserRouter(
 
         // Secundarios
         { path: 'sucursales', element: <BranchesPage /> },
-        { path: 'notificaciones', element: <NotificationsPage /> },
       ],
     },
     {

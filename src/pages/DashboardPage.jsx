@@ -1,6 +1,6 @@
 import { useAuth } from '../hooks/useAuth';
 import { Link } from 'react-router-dom';
-import { Users, Repeat, Building2, UserPlus, Bell, ArrowRight } from 'lucide-react';
+import { Users, Repeat, Building2, UserPlus, ArrowRight } from 'lucide-react';
 
 const ICON_COLOR = '#4B5563';
 
@@ -28,12 +28,6 @@ const modules = [
     description: 'Crear nueva cuenta de cliente',
     path: '/cuentas/nueva',
     Icon: UserPlus,
-  },
-  {
-    title: 'Notificaciones',
-    description: 'Ver tus notificaciones',
-    path: '/notificaciones',
-    Icon: Bell,
   },
 ];
 
