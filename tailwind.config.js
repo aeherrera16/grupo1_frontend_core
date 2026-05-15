@@ -13,6 +13,7 @@ export default {
       colors: {
         banker: {
           navy: '#001f3f',
+          blue: '#1f6173',
           'navy-light': '#003d66',
           'navy-lighter': '#0052a3',
           gray: {

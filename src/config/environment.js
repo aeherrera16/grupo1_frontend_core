@@ -47,6 +47,7 @@ export const ENDPOINTS = {
     GET_BY_CUSTOMER: (customerId) => `/accounts/customer/${customerId}`,
     INACTIVATE: (accountNumber) => `/accounts/${accountNumber}/inactivate`,
     BLOCK: (accountNumber) => `/accounts/${accountNumber}/block`,
+    ACTIVATE: (accountNumber) => `/accounts/${accountNumber}/activate`,
     SUSPEND: (accountNumber) => `/accounts/${accountNumber}/suspend`,
     CREDIT: (accountNumber) => `/accounts/${accountNumber}/credit`,
     TRANSFER: '/accounts/transfer',

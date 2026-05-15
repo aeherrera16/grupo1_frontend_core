@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getAccount, inactivateAccount, blockAccount, suspendAccount } from '../../api/accountApi';
+import { getAccount, activateAccount, inactivateAccount, blockAccount, suspendAccount } from '../../api/accountApi';
 import { getTransactionHistory } from '../../api/transactionApi';
 import { formatCurrency, formatDate, formatDateTime, formatStatus } from '../../helpers/formatters';
 import StatusBadge from '../../components/ui/StatusBadge';
@@ -16,9 +16,11 @@ export const AccountDetailPage = () => {
   const [error, setError] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, action: null });
+  const [historyError, setHistoryError] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
+      setHistoryError(null);
       try {
         const accountResponse = await getAccount(accountNumber);
         setAccount(accountResponse.data);
@@ -33,6 +35,7 @@ export const AccountDetailPage = () => {
             console.warn('No se pudo cargar el historial de transacciones:', txErr);
           }
           setTransactions([]);
+          setHistoryError('No se pudo cargar el historial. Intente más tarde.');
         }
       } catch (err) {
         setError(err.response?.data?.message || 'Error al cargar cuenta');
@@ -49,9 +52,9 @@ export const AccountDetailPage = () => {
     try {
       let response;
       switch (action) {
-        // case 'activate': // No implementado en backend aún
-        //   response = await activateAccount(accountNumber);
-        //   break;
+        case 'activate':
+          response = await activateAccount(accountNumber);
+          break;
         case 'inactivate':
           response = await inactivateAccount(accountNumber);
           break;
@@ -137,13 +140,13 @@ export const AccountDetailPage = () => {
           <div className="bg-white p-6 rounded-lg shadow mb-6">
             <h3 className="font-bold mb-4">Cambiar Estado</h3>
             <div className="flex flex-wrap gap-3">
-              {/* <button
+              <button
                 onClick={() => setConfirmModal({ isOpen: true, action: 'activate' })}
-                disabled={account.status === 'ACTIVO' || actionLoading}
+                disabled={account.status === 'ACTIVA' || actionLoading}
                 className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:bg-gray-400"
               >
                 Activar
-              </button> */}
+              </button>
               <button
                 onClick={() => setConfirmModal({ isOpen: true, action: 'inactivate' })}
                 disabled={account.status === 'INACTIVO' || actionLoading}
@@ -180,7 +183,9 @@ export const AccountDetailPage = () => {
               </button>
             </div>
 
-            {transactions.length > 0 ? (
+            {historyError ? (
+              <p className="text-red-600 py-4 text-center">{historyError}</p>
+            ) : transactions.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-sm">
                   <thead className="bg-gray-100 border-b">
@@ -214,7 +219,7 @@ export const AccountDetailPage = () => {
                 </table>
               </div>
             ) : (
-              <p className="text-gray-600 py-4">No hay transacciones</p>
+              <p className="text-gray-600 py-4">No hay transacciones recientes</p>
             )}
           </div>
         </>
@@ -223,7 +228,11 @@ export const AccountDetailPage = () => {
       <ConfirmModal
         isOpen={confirmModal.isOpen}
         title="Confirmar cambio de estado"
-        message={`¿Desea cambiar el estado de esta cuenta a ${confirmModal.action?.toUpperCase()}?`}
+        message={
+          confirmModal.action === 'activate'
+            ? '¿Estás seguro de activar esta cuenta?'
+            : `¿Desea cambiar el estado de esta cuenta a ${confirmModal.action?.toUpperCase()}?`
+        }
         onConfirm={() => handleStateChange(confirmModal.action)}
         onCancel={() => setConfirmModal({ isOpen: false, action: null })}
         confirmText="Sí, cambiar"
