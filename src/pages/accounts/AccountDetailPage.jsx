@@ -196,10 +196,10 @@ export const AccountDetailPage = () => {
                   <tbody>
                     {transactions.map((tx, idx) => (
                       <tr key={idx} className="border-b hover:bg-gray-50">
-                        <td className="p-3">{formatDateTime(tx.transactionDate)}</td>
+                        <td className="p-3">{formatDateTime(tx.date)}</td>
                         <td className="p-3">
-                          <span className={tx.movementType === 'DEBITO' ? 'text-red-600' : 'text-green-600'}>
-                            {tx.movementType}
+                          <span className={tx.type === 'DEBITO' ? 'text-red-600' : 'text-green-600'}>
+                            {tx.type}
                           </span>
                         </td>
                         <td className="p-3">{formatCurrency(tx.amount)}</td>

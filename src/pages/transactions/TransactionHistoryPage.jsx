@@ -117,10 +117,10 @@ export const TransactionHistoryPage = () => {
             <tbody>
               {transactions.map((tx, idx) => (
                 <tr key={idx} className="border-b hover:bg-gray-50">
-                  <td className="p-3 text-gray-700">{formatDateTime(tx.transactionDate)}</td>
+                  <td className="p-3 text-gray-700">{formatDateTime(tx.date)}</td>
                   <td className="p-3">
-                    <span className={tx.movementType === 'DEBITO' ? 'text-red-600 font-semibold' : 'text-green-600 font-semibold'}>
-                      {tx.movementType}
+                    <span className={tx.type === 'DEBITO' ? 'text-red-600 font-semibold' : 'text-green-600 font-semibold'}>
+                      {tx.type}
                     </span>
                   </td>
                   <td className="p-3 text-gray-700 text-xs">{tx.subtypeName || tx.subtypeCode}</td>
