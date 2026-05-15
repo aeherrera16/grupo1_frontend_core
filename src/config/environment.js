@@ -51,6 +51,7 @@ export const ENDPOINTS = {
     CREDIT: (accountNumber) => `/accounts/${accountNumber}/credit`,
     TRANSFER: '/accounts/transfer',
     GET_FAVORITE: '/accounts/default/favorite',
+    AVAILABILITY: (accountNumber) => `/integration/balance/${accountNumber}`,
   },
 
   // Transacciones

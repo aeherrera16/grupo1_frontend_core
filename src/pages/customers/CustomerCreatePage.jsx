@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useBlocker } from 'react-router-dom';
 import { createCustomer, getCustomerSubtypesByType } from '../../api/customerApi';
 import { getAllBranches } from '../../api/branchApi';
-import { validateEmail, validatePhone, validateIdentification } from '../../helpers/validators';
+import { validateEmail, validatePhone, validateIdentification, validateRuc } from '../../helpers/validators';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import RepresentativeSearchModal from '../../components/customers/RepresentativeSearchModal';
 
@@ -11,6 +11,9 @@ const validateField = (name, value, idType) => {
   switch (name) {
     case 'identificationNumber':
       if (!value) return 'Requerido';
+      if (idType === 'RUC' && !validateRuc(value)) {
+        return 'Para persona jurídica el RUC debe tener 13 dígitos';
+      }
       if (!validateIdentification(idType, value)) {
         if (idType === 'RUC') return 'Para persona jurídica el RUC debe tener 13 dígitos';
         return 'Número inválido para el tipo seleccionado';
@@ -186,7 +189,6 @@ export const CustomerCreatePage = () => {
 
     setSubmitting(true);
     try {
-      console.log('🔍 subtypeId al submit:', subtypeId);
       if (!subtypeId) {
         setServerError('No se pudo obtener el subtipo de cliente. Intente recargar la página.');
         setSubmitting(false);
@@ -194,12 +196,12 @@ export const CustomerCreatePage = () => {
       }
 
       const payload = {
-        type: customerType,
-        subtypeId,
+        customerType: customerType,
+        customerSubtypeId: subtypeId,
         identificationType: formData.identificationType,
         identification: formData.identificationNumber,
         email: formData.email,
-        phone: formData.phone,
+        mobilePhone: formData.phone,
         address: formData.address,
       };
       if (formData.branchId) payload.branchId = formData.branchId;
@@ -214,7 +216,6 @@ export const CustomerCreatePage = () => {
         payload.legalRepresentativeId = selectedRepresentative.id;
       }
 
-      console.log('📦 payload enviado:', JSON.stringify(payload));
       const response = await createCustomer(payload);
       setIsDirty(false);
       setSuccess(true);

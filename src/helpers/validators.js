@@ -8,6 +8,10 @@ export const validatePhone = (phone) => {
   return phoneRegex.test(phone.replace(/\s|-/g, ''));
 };
 
+export const validateRuc = (value) => {
+  return /^\d{13}$/.test(value);
+};
+
 export const validateCurrency = (amount) => {
   if (!amount) return false;
   const num = parseFloat(amount);
@@ -21,7 +25,7 @@ export const validateIdentification = (type, number) => {
     case 'CEDULA':
       return /^\d{10}$/.test(number);
     case 'RUC':
-      return /^\d{13}$/.test(number);
+      return validateRuc(number);
     case 'PASAPORTE':
       return /^[A-Z0-9]{6,10}$/.test(number);
     default:

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { searchCustomer } from '../../api/customerApi';
 import { getAccountsByCustomer } from '../../api/accountApi';
 
@@ -10,9 +10,11 @@ const RepresentativeSearchModal = ({ isOpen, onClose, onSelect }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const inputRef = useRef(null);
+  const searchRequestRef = useRef(0);
 
   useEffect(() => {
     if (isOpen) {
+      searchRequestRef.current += 1;
       setSearchQuery('');
       setResult(null);
       setSearched(false);
@@ -21,29 +23,32 @@ const RepresentativeSearchModal = ({ isOpen, onClose, onSelect }) => {
     }
   }, [isOpen]);
 
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    if (!searchQuery.trim()) {
-      setError('Ingrese un número de identificación');
+  const performSearch = useCallback(async (type, query) => {
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery) {
       return;
     }
 
+    const requestId = searchRequestRef.current + 1;
+    searchRequestRef.current = requestId;
     setLoading(true);
     setError('');
     setResult(null);
     setSearched(false);
 
     try {
-      const customerRes = await searchCustomer(searchType, searchQuery.trim());
+      const customerRes = await searchCustomer(type, trimmedQuery);
+      if (searchRequestRef.current !== requestId) return;
       const customer = customerRes.data;
 
-      if (customer.type !== 'NATURAL') {
+      if (customer.customerType !== 'NATURAL') {
         setError('La identificación corresponde a una Persona Jurídica. Solo se permiten Personas Naturales como representante legal.');
         setSearched(true);
         return;
       }
 
       const accountsRes = await getAccountsByCustomer(customer.id);
+      if (searchRequestRef.current !== requestId) return;
       const accounts = accountsRes.data || [];
 
       if (accounts.length === 0) {
@@ -55,8 +60,9 @@ const RepresentativeSearchModal = ({ isOpen, onClose, onSelect }) => {
       setResult({ ...customer, accounts });
       setSearched(true);
     } catch (err) {
+      if (searchRequestRef.current !== requestId) return;
       if (err.response?.status === 404) {
-        setError(`No se encontró cliente con ${searchType.toLowerCase()}: ${searchQuery}`);
+        setError(`No se encontró cliente con ${type.toLowerCase()}: ${trimmedQuery}`);
       } else if (!err.response) {
         setError('No se puede conectar al servidor');
       } else {
@@ -64,8 +70,39 @@ const RepresentativeSearchModal = ({ isOpen, onClose, onSelect }) => {
       }
       setSearched(true);
     } finally {
-      setLoading(false);
+      if (searchRequestRef.current === requestId) {
+        setLoading(false);
+      }
     }
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    const trimmedQuery = searchQuery.trim();
+    if (!trimmedQuery) {
+      searchRequestRef.current += 1;
+      setResult(null);
+      setSearched(false);
+      setLoading(false);
+      return undefined;
+    }
+
+    const timeoutId = setTimeout(() => {
+      performSearch(searchType, trimmedQuery);
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [isOpen, searchQuery, searchType, performSearch]);
+
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) {
+      setError('Ingrese un número de identificación');
+      return;
+    }
+
+    await performSearch(searchType, searchQuery);
   };
 
   const handleSelect = () => {

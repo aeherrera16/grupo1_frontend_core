@@ -12,6 +12,7 @@ import { CustomerCreatePage } from '../pages/customers/CustomerCreatePage';
 import { CustomerDetailPage } from '../pages/customers/CustomerDetailPage';
 import { AccountCreatePage } from '../pages/accounts/AccountCreatePage';
 import { AccountDetailPage } from '../pages/accounts/AccountDetailPage';
+import { AccountAvailabilityPage } from '../pages/accounts/AccountAvailabilityPage';
 import { TransactionFormPage } from '../pages/transactions/TransactionFormPage';
 import { TransactionHistoryPage } from '../pages/transactions/TransactionHistoryPage';
 import { BranchesPage } from '../pages/BranchesPage';
@@ -47,10 +48,12 @@ const router = createBrowserRouter([
       { path: 'dashboard', element: <DashboardPage /> },
       { path: '', element: <DashboardPage /> },
       { path: 'clientes', element: <CustomerListPage /> },
+      { path: 'clientes/lista', element: <CustomerListPage /> },
       { path: 'clientes/buscar', element: <CustomerSearchPage /> },
       { path: 'clientes/nuevo', element: <CustomerCreatePage /> },
       { path: 'clientes/:id', element: <CustomerDetailPage /> },
       { path: 'cuentas/nueva', element: <AccountCreatePage /> },
+      { path: 'cuentas/:accountNumber/disponibilidad', element: <AccountAvailabilityPage /> },
       { path: 'cuentas/:accountNumber', element: <AccountDetailPage /> },
       { path: 'transacciones/nueva', element: <TransactionFormPage /> },
       { path: 'transacciones/historial/:accountNumber', element: <TransactionHistoryPage /> },

@@ -35,9 +35,6 @@ export function LoginPage() {
 
     setLoading(true);
     try {
-      if (import.meta.env.DEV) {
-        console.log('📤 Enviando login:', { username, password });
-      }
       if (login) {
         await login(username, password);
       }
@@ -49,7 +46,7 @@ export function LoginPage() {
       if (!err.response) {
         setError('No se puede conectar al servidor. Por favor, intente más tarde.');
       } else if (err.response?.status === 401 || err.response?.status === 403) {
-        setError('Usuario o contraseña incorrectos. Intente con: admin.core / admin');
+        setError('Usuario o contraseña incorrectos.');
       } else if (err.response?.status === 400) {
         setError(err.response?.data?.message || 'Solicitud inválida. Verifique los datos.');
       } else {
@@ -126,16 +123,6 @@ export function LoginPage() {
               {loading ? 'Ingresando...' : 'Ingresar'}
             </button>
           </form>
-
-          <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="text-center text-blue-900 text-xs font-semibold mb-2">📝 Credenciales de Prueba</p>
-            <p className="text-center text-blue-800 text-xs">
-              Usuario: <code className="bg-white px-2 py-1 rounded">admin.core</code>
-            </p>
-            <p className="text-center text-blue-800 text-xs">
-              Contraseña: <code className="bg-white px-2 py-1 rounded">admin</code>
-            </p>
-          </div>
 
           <p className="text-center text-gray-600 text-sm mt-4">
             ¿Problemas de acceso? Contacte a soporte

@@ -27,3 +27,6 @@ export const transferFunds = (data) =>
 
 export const getFavoriteAccount = () =>
   axiosInstance.get(ENDPOINTS.ACCOUNTS.GET_FAVORITE);
+
+export const getAccountAvailability = (accountNumber) =>
+  axiosInstance.get(ENDPOINTS.ACCOUNTS.AVAILABILITY(accountNumber));

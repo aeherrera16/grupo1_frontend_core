@@ -15,10 +15,12 @@ import { DashboardPage } from './pages/DashboardPage';
 import { CustomerSearchPage } from './pages/customers/CustomerSearchPage';
 import { CustomerDetailPage } from './pages/customers/CustomerDetailPage';
 import { CustomerCreatePage } from './pages/customers/CustomerCreatePage';
+import { CustomerListPage } from './pages/customers/CustomerListPage';
 
 // Pages - Cuentas
 import { AccountDetailPage } from './pages/accounts/AccountDetailPage';
 import { AccountCreatePage } from './pages/accounts/AccountCreatePage';
+import { AccountAvailabilityPage } from './pages/accounts/AccountAvailabilityPage';
 
 // Pages - Transacciones
 import { TransactionFormPage } from './pages/transactions/TransactionFormPage';
@@ -73,11 +75,13 @@ const router = createBrowserRouter(
 
         // Clientes — rutas estáticas antes que dinámicas
         { path: 'clientes', element: <CustomerSearchPage /> },
+        { path: 'clientes/lista', element: <CustomerListPage /> },
         { path: 'clientes/nuevo', element: <CustomerCreatePage /> },
         { path: 'clientes/:id', element: <CustomerDetailPage /> },
 
         // Cuentas
         { path: 'cuentas/nueva', element: <AccountCreatePage /> },
+        { path: 'cuentas/:accountNumber/disponibilidad', element: <AccountAvailabilityPage /> },
         { path: 'cuentas/:accountNumber', element: <AccountDetailPage /> },
 
         // Transacciones

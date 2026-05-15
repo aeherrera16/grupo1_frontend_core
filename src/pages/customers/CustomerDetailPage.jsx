@@ -13,6 +13,7 @@ export const CustomerDetailPage = () => {
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [accountsError, setAccountsError] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -20,8 +21,14 @@ export const CustomerDetailPage = () => {
         const customerResponse = await getCustomer(id);
         setCustomer(customerResponse.data);
 
-        const accountsResponse = await getAccountsByCustomer(id);
-        setAccounts(accountsResponse.data || []);
+        try {
+          const accountsResponse = await getAccountsByCustomer(id);
+          setAccounts(accountsResponse.data || []);
+          setAccountsError('');
+        } catch (accountsErr) {
+          setAccounts([]);
+          setAccountsError(accountsErr.response?.data?.message || 'Error al cargar cuentas del cliente');
+        }
       } catch (err) {
         setError(err.response?.data?.message || 'Error al cargar cliente');
       } finally {
@@ -103,6 +110,12 @@ export const CustomerDetailPage = () => {
                 + Nueva Cuenta
               </button>
             </div>
+
+            {accountsError && (
+              <div className="bg-red-100 text-red-800 p-4 rounded mb-4">
+                {accountsError}
+              </div>
+            )}
 
             {accounts.length > 0 ? (
               <div className="overflow-x-auto">
