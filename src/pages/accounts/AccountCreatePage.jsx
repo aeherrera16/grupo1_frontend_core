@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { createAccount } from '../../api/accountApi';
+import { createAccount, getAccountsByCustomer } from '../../api/accountApi';
 import { searchCustomer, getCustomer } from '../../api/customerApi';
 import { getAllBranches } from '../../api/branchApi';
 import { validateCurrency } from '../../helpers/validators';
 import { ACCOUNT_TYPES } from '../../constants/accountTypes';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
+
+const ACCOUNT_MINIMUMS = { 1: 10, 2: 100, 3: 0 };
 
 export const AccountCreatePage = () => {
   const navigate = useNavigate();
@@ -20,6 +22,7 @@ export const AccountCreatePage = () => {
   const [identificationType, setIdentificationType] = useState('CEDULA');
   const [identificationNumber, setIdentificationNumber] = useState('');
   const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [customerAccounts, setCustomerAccounts] = useState([]);
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
 
@@ -63,11 +66,21 @@ export const AccountCreatePage = () => {
     setSearching(true);
     setSearchError('');
     setSelectedCustomer(null);
+    setCustomerAccounts([]);
     try {
       const response = await searchCustomer(identificationType, identificationNumber);
-      setSelectedCustomer(response.data);
-      setFormData(prev => ({ ...prev, customerId: response.data.id }));
+      const customerData = response.data;
+      setSelectedCustomer(customerData);
+      setFormData(prev => ({ ...prev, customerId: customerData.id }));
       setSearchError('');
+
+      // Cargar cuentas del cliente para validar duplicados
+      try {
+        const accountsResp = await getAccountsByCustomer(customerData.id);
+        setCustomerAccounts(accountsResp.data || []);
+      } catch {
+        setCustomerAccounts([]);
+      }
     } catch (err) {
       let errorMessage = 'Error al buscar cliente';
       if (err.response?.status === 404) {
@@ -100,13 +113,42 @@ export const AccountCreatePage = () => {
       return false;
     }
 
+    // Validación KYC
+    if (selectedCustomer.status !== 'APROBADO') {
+      setError('El cliente debe tener estado KYC aprobado para crear una cuenta');
+      return false;
+    }
+
     if (!formData.branchId) {
       setError('Seleccione una sucursal');
       return false;
     }
 
-    if (formData.initialBalance && !validateCurrency(formData.initialBalance)) {
+    // Validación de cuenta duplicada
+    const accountSubtypeId = parseInt(formData.accountSubtypeId);
+    const existingAccount = customerAccounts.find(
+      acc => parseInt(acc.accountSubtypeId) === accountSubtypeId
+    );
+    if (existingAccount) {
+      setError('El cliente ya tiene una cuenta de este tipo. No es posible crear más de una cuenta del mismo tipo.');
+      return false;
+    }
+
+    // Validación de monto mínimo
+    const minAmount = ACCOUNT_MINIMUMS[accountSubtypeId] ?? 0;
+    if (!formData.initialBalance) {
+      setError(`El monto inicial es requerido. Mínimo: $${minAmount} USD`);
+      return false;
+    }
+
+    const amount = parseFloat(formData.initialBalance);
+    if (isNaN(amount) || !validateCurrency(formData.initialBalance)) {
       setError('Saldo inicial inválido');
+      return false;
+    }
+
+    if (amount < minAmount) {
+      setError(`El monto inicial mínimo para este tipo de cuenta es $${minAmount} USD`);
       return false;
     }
 
@@ -221,38 +263,70 @@ export const AccountCreatePage = () => {
       )}
 
       {selectedCustomer && (
-        <div className="bg-green-50 border border-green-200 p-6 rounded-lg shadow mb-6">
-          <h2 className="text-lg font-bold mb-4">Cliente Seleccionado</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <p className="text-gray-600 text-sm">Nombre</p>
-              <p className="font-semibold">{selectedCustomer.name || selectedCustomer.businessName}</p>
+        <>
+          <div className={`border p-6 rounded-lg shadow mb-6 ${
+            selectedCustomer.status === 'APROBADO'
+              ? 'bg-green-50 border-green-200'
+              : 'bg-red-50 border-red-200'
+          }`}>
+            <h2 className="text-lg font-bold mb-4">Cliente Seleccionado</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <p className="text-gray-600 text-sm">Nombre</p>
+                <p className="font-semibold">{selectedCustomer.name || selectedCustomer.businessName}</p>
+              </div>
+              <div>
+                <p className="text-gray-600 text-sm">Tipo</p>
+                <p className="font-semibold">{selectedCustomer.type}</p>
+              </div>
+              <div>
+                <p className="text-gray-600 text-sm">Identificación</p>
+                <p className="font-semibold">{selectedCustomer.identification}</p>
+              </div>
+              <div>
+                <p className="text-gray-600 text-sm">Email</p>
+                <p className="font-semibold">{selectedCustomer.email}</p>
+              </div>
+              <div>
+                <p className="text-gray-600 text-sm">Estado KYC</p>
+                <p className={`font-semibold ${
+                  selectedCustomer.status === 'APROBADO'
+                    ? 'text-green-700'
+                    : 'text-red-700'
+                }`}>
+                  {selectedCustomer.status}
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-gray-600 text-sm">Tipo</p>
-              <p className="font-semibold">{selectedCustomer.type}</p>
-            </div>
-            <div>
-              <p className="text-gray-600 text-sm">Identificación</p>
-              <p className="font-semibold">{selectedCustomer.identification}</p>
-            </div>
-            <div>
-              <p className="text-gray-600 text-sm">Email</p>
-              <p className="font-semibold">{selectedCustomer.email}</p>
-            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedCustomer(null);
+                setIdentificationNumber('');
+                setSearchError('');
+                setCustomerAccounts([]);
+              }}
+              className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700"
+            >
+              Cambiar Cliente
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => {
-              setSelectedCustomer(null);
-              setIdentificationNumber('');
-              setSearchError('');
-            }}
-            className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700"
-          >
-            Cambiar Cliente
-          </button>
-        </div>
+
+          {selectedCustomer.status !== 'APROBADO' && (
+            <div className="bg-red-50 border-l-4 border-red-600 p-5 rounded-lg mb-6">
+              <div className="flex items-start gap-3">
+                <span className="text-2xl">🔒</span>
+                <div>
+                  <p className="font-bold text-red-800">KYC no aprobado</p>
+                  <p className="text-red-700 text-sm mt-1">
+                    El cliente debe tener estado KYC "APROBADO" para abrir una cuenta.
+                    Por favor, completa el proceso de KYC antes de continuar.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {!selectedCustomer && (
@@ -261,59 +335,71 @@ export const AccountCreatePage = () => {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow" style={{ opacity: selectedCustomer ? 1 : 0.6, pointerEvents: selectedCustomer ? 'auto' : 'none' }}>
-        {/* Cliente ya seleccionado */}
-        {selectedCustomer && (
+      {selectedCustomer && selectedCustomer.status === 'APROBADO' && (
+        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow">
+          {/* Cliente ya seleccionado */}
           <div className="mb-6 p-3 bg-blue-50 border border-blue-200 rounded">
             <p className="text-sm text-gray-600">Cliente seleccionado: <span className="font-semibold">{selectedCustomer.name || selectedCustomer.businessName}</span></p>
           </div>
-        )}
 
-        <div className="mb-6">
-          <label className="block text-sm font-medium mb-2">Tipo de Cuenta *</label>
-          <select
-            name="accountSubtypeId"
-            value={formData.accountSubtypeId}
-            onChange={handleInputChange}
-            className="w-full p-2 border rounded"
-            required
-          >
-            {ACCOUNT_TYPES.map(at => (
-              <option key={at.id} value={at.id}>{at.name}</option>
-            ))}
-          </select>
-        </div>
+          <div className="mb-6">
+            <label className="block text-sm font-medium mb-2">Tipo de Cuenta *</label>
+            <select
+              name="accountSubtypeId"
+              value={formData.accountSubtypeId}
+              onChange={handleInputChange}
+              className="w-full p-2 border rounded"
+              required
+            >
+              {ACCOUNT_TYPES.map(at => (
+                <option key={at.id} value={at.id}>{at.name}</option>
+              ))}
+            </select>
+          </div>
 
-        <div className="mb-6">
-          <label className="block text-sm font-medium mb-2">Sucursal *</label>
-          <select
-            name="branchId"
-            value={formData.branchId}
-            onChange={handleInputChange}
-            className="w-full p-2 border rounded"
-            required
-          >
-            <option value="">Seleccionar...</option>
-            {branches.map(b => (
-              <option key={b.id} value={b.id}>{b.name}</option>
-            ))}
-          </select>
-        </div>
+          <div className="mb-6">
+            <label className="block text-sm font-medium mb-2">Moneda</label>
+            <input
+              type="text"
+              value="USD"
+              readOnly
+              className="w-full p-2 border rounded bg-gray-100 text-gray-600 cursor-not-allowed"
+            />
+          </div>
 
-        <div className="mb-6">
-          <label className="block text-sm font-medium mb-2">Saldo Inicial</label>
-          <input
-            type="number"
-            name="initialBalance"
-            value={formData.initialBalance}
-            onChange={handleInputChange}
-            placeholder="0.00"
-            step="0.01"
-            min="0"
-            className="w-full p-2 border rounded"
-          />
-          <p className="text-gray-600 text-sm mt-1">Monto inicial en la cuenta (opcional)</p>
-        </div>
+          <div className="mb-6">
+            <label className="block text-sm font-medium mb-2">Sucursal *</label>
+            <select
+              name="branchId"
+              value={formData.branchId}
+              onChange={handleInputChange}
+              className="w-full p-2 border rounded"
+              required
+            >
+              <option value="">Seleccionar...</option>
+              {branches.map(b => (
+                <option key={b.id} value={b.id}>{b.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="mb-6">
+            <label className="block text-sm font-medium mb-2">Saldo Inicial *</label>
+            <input
+              type="number"
+              name="initialBalance"
+              value={formData.initialBalance}
+              onChange={handleInputChange}
+              placeholder="0.00"
+              step="0.01"
+              min={ACCOUNT_MINIMUMS[parseInt(formData.accountSubtypeId)] ?? 0}
+              className="w-full p-2 border rounded"
+              required
+            />
+            <p className="text-gray-600 text-sm mt-1">
+              Monto mínimo: ${ACCOUNT_MINIMUMS[parseInt(formData.accountSubtypeId)] ?? 0} USD
+            </p>
+          </div>
 
         <div className="mb-6 flex items-center">
           <input
