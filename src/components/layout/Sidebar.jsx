@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(true);
@@ -32,14 +32,20 @@ const Sidebar = () => {
 
       <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
         {menuItems.map((item) => (
-          <Link
+          <NavLink
             key={item.path}
             to={item.path}
-            className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition duration-200 group"
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-4 py-3 rounded-lg transition duration-200 group ${
+                isActive
+                  ? 'bg-blue-100 text-blue-600 font-semibold'
+                  : 'text-gray-700 hover:bg-blue-50 hover:text-blue-600'
+              }`
+            }
           >
             <span className="text-lg">{item.icon}</span>
             {isOpen && <span className="text-sm font-medium">{item.label}</span>}
-          </Link>
+          </NavLink>
         ))}
       </nav>
     </aside>

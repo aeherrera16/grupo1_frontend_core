@@ -24,6 +24,14 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  useEffect(() => {
+    const handleLogout = () => {
+      logout();
+    };
+    window.addEventListener('logout', handleLogout);
+    return () => window.removeEventListener('logout', handleLogout);
+  }, []);
+
   const login = async (username, password) => {
     try {
       const res = await loginStaff(username, password);

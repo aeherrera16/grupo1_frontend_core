@@ -1,35 +1,42 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createAccount } from '../../api/accountApi';
-import { getCustomer } from '../../api/customerApi';
+import { searchCustomer, getCustomer } from '../../api/customerApi';
 import { getAllBranches } from '../../api/branchApi';
 import { validateCurrency } from '../../helpers/validators';
+import { ACCOUNT_TYPES } from '../../constants/accountTypes';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
-
-const ACCOUNT_TYPES = [
-  { id: 'AHORROS', name: 'Cuenta de Ahorros' },
-  { id: 'CORRIENTE', name: 'Cuenta Corriente' },
-  { id: 'DEPOSITO', name: 'Depósito a Plazo' }
-];
 
 export const AccountCreatePage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const prefilledCustomerId = searchParams.get('customerId');
 
-  const [customers, setCustomers] = useState([]);
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
+  const [identificationType, setIdentificationType] = useState('CEDULA');
+  const [identificationNumber, setIdentificationNumber] = useState('');
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState('');
+
   const [formData, setFormData] = useState({
-    customerId: prefilledCustomerId || '',
-    accountType: 'AHORROS',
+    customerId: '',
+    accountSubtypeId: 1,
     branchId: '',
     initialBalance: '',
     isFavorite: false
   });
+
+  // Si viene un customerId en los parámetros de búsqueda, cargarlo
+  useEffect(() => {
+    if (prefilledCustomerId) {
+      setFormData(prev => ({ ...prev, customerId: prefilledCustomerId }));
+    }
+  }, [prefilledCustomerId]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -46,6 +53,39 @@ export const AccountCreatePage = () => {
     fetchData();
   }, []);
 
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    if (!identificationNumber.trim()) {
+      setSearchError('Ingrese un número de identificación');
+      return;
+    }
+
+    setSearching(true);
+    setSearchError('');
+    setSelectedCustomer(null);
+    try {
+      const response = await searchCustomer(identificationType, identificationNumber);
+      setSelectedCustomer(response.data);
+      setFormData(prev => ({ ...prev, customerId: response.data.id }));
+      setSearchError('');
+    } catch (err) {
+      let errorMessage = 'Error al buscar cliente';
+      if (err.response?.status === 404) {
+        errorMessage = `No se encontró cliente con ${identificationType.toLowerCase()}: ${identificationNumber}`;
+      } else if (err.response?.status === 400) {
+        errorMessage = err.response?.data?.message || 'Datos inválidos';
+      } else if (!err.response) {
+        errorMessage = 'No se puede conectar al servidor';
+      } else {
+        errorMessage = err.response?.data?.message || errorMessage;
+      }
+      setSearchError(errorMessage);
+      setSelectedCustomer(null);
+    } finally {
+      setSearching(false);
+    }
+  };
+
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
@@ -55,8 +95,8 @@ export const AccountCreatePage = () => {
   };
 
   const validateForm = () => {
-    if (!formData.customerId) {
-      setError('Seleccione un cliente');
+    if (!selectedCustomer || !formData.customerId) {
+      setError('Debe buscar y seleccionar un cliente');
       return false;
     }
 
@@ -83,7 +123,7 @@ export const AccountCreatePage = () => {
     try {
       const payload = {
         customerId: parseInt(formData.customerId),
-        accountType: formData.accountType,
+        accountSubtypeId: parseInt(formData.accountSubtypeId),
         branchId: parseInt(formData.branchId),
         initialBalance: formData.initialBalance ? parseFloat(formData.initialBalance) : 0,
         isFavorite: formData.isFavorite
@@ -119,32 +159,121 @@ export const AccountCreatePage = () => {
       <h1 className="text-3xl font-bold mb-6">Crear Nueva Cuenta</h1>
 
       {error && (
-        <div className="bg-red-100 text-red-800 p-4 rounded mb-6">
-          {error}
+        <div className="bg-gradient-to-br from-orange-50 to-red-50 border-l-4 border-orange-500 p-4 rounded-lg mb-6">
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">⚠️</span>
+            <div>
+              <p className="font-semibold text-gray-900">Error</p>
+              <p className="text-gray-700 text-sm mt-1">{error}</p>
+            </div>
+          </div>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow">
-        <div className="mb-6">
-          <label className="block text-sm font-medium mb-2">Cliente *</label>
-          <input
-            type="text"
-            placeholder="ID del cliente"
-            value={formData.customerId}
-            onChange={(e) => setFormData(prev => ({ ...prev, customerId: e.target.value }))}
-            className="w-full p-2 border rounded"
-            required
-          />
-          <p className="text-gray-600 text-sm mt-1">
-            {prefilledCustomerId && 'Cliente pre-seleccionado desde búsqueda'}
-          </p>
+      {/* Sección de búsqueda de cliente */}
+      {!selectedCustomer && (
+        <form onSubmit={handleSearch} className="bg-white p-6 rounded-lg shadow mb-6">
+          <h2 className="text-lg font-bold mb-4">Seleccionar Cliente</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Tipo de Identificación</label>
+              <select
+                value={identificationType}
+                onChange={(e) => setIdentificationType(e.target.value)}
+                className="w-full p-2 border rounded"
+              >
+                <option value="CEDULA">Cédula</option>
+                <option value="RUC">RUC</option>
+                <option value="PASAPORTE">Pasaporte</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Número</label>
+              <input
+                type="text"
+                value={identificationNumber}
+                onChange={(e) => setIdentificationNumber(e.target.value)}
+                placeholder="Ingrese el número"
+                className="w-full p-2 border rounded"
+              />
+            </div>
+          </div>
+          <button
+            type="submit"
+            disabled={searching}
+            className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 disabled:bg-gray-400"
+          >
+            {searching ? 'Buscando...' : 'Buscar Cliente'}
+          </button>
+        </form>
+      )}
+
+      {searchError && (
+        <div className="bg-gradient-to-br from-orange-50 to-red-50 border-l-4 border-orange-500 p-4 rounded-lg mb-6">
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">⚠️</span>
+            <div>
+              <p className="font-semibold text-gray-900">Error en búsqueda</p>
+              <p className="text-gray-700 text-sm mt-1">{searchError}</p>
+            </div>
+          </div>
         </div>
+      )}
+
+      {selectedCustomer && (
+        <div className="bg-green-50 border border-green-200 p-6 rounded-lg shadow mb-6">
+          <h2 className="text-lg font-bold mb-4">Cliente Seleccionado</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <p className="text-gray-600 text-sm">Nombre</p>
+              <p className="font-semibold">{selectedCustomer.name || selectedCustomer.businessName}</p>
+            </div>
+            <div>
+              <p className="text-gray-600 text-sm">Tipo</p>
+              <p className="font-semibold">{selectedCustomer.type}</p>
+            </div>
+            <div>
+              <p className="text-gray-600 text-sm">Identificación</p>
+              <p className="font-semibold">{selectedCustomer.identification}</p>
+            </div>
+            <div>
+              <p className="text-gray-600 text-sm">Email</p>
+              <p className="font-semibold">{selectedCustomer.email}</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedCustomer(null);
+              setIdentificationNumber('');
+              setSearchError('');
+            }}
+            className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700"
+          >
+            Cambiar Cliente
+          </button>
+        </div>
+      )}
+
+      {!selectedCustomer && (
+        <div className="bg-blue-50 border border-blue-300 p-4 rounded-lg mb-6">
+          <p className="text-blue-800">👆 Busque y seleccione un cliente arriba para continuar</p>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow" style={{ opacity: selectedCustomer ? 1 : 0.6, pointerEvents: selectedCustomer ? 'auto' : 'none' }}>
+        {/* Cliente ya seleccionado */}
+        {selectedCustomer && (
+          <div className="mb-6 p-3 bg-blue-50 border border-blue-200 rounded">
+            <p className="text-sm text-gray-600">Cliente seleccionado: <span className="font-semibold">{selectedCustomer.name || selectedCustomer.businessName}</span></p>
+          </div>
+        )}
 
         <div className="mb-6">
           <label className="block text-sm font-medium mb-2">Tipo de Cuenta *</label>
           <select
-            name="accountType"
-            value={formData.accountType}
+            name="accountSubtypeId"
+            value={formData.accountSubtypeId}
             onChange={handleInputChange}
             className="w-full p-2 border rounded"
             required

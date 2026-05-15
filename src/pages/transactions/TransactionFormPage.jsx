@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { debit, credit, transfer } from '../../api/transactionApi';
 import { validateCurrency } from '../../helpers/validators';
 import { formatCurrency } from '../../helpers/formatters';
+import { DEBIT_SUBTYPES, CREDIT_SUBTYPES } from '../../constants/transactionSubtypes';
 
 export const TransactionFormPage = () => {
   const navigate = useNavigate();
@@ -14,13 +15,15 @@ export const TransactionFormPage = () => {
   const [debitForm, setDebitForm] = useState({
     accountNumber: '',
     amount: '',
-    description: ''
+    description: '',
+    subtypeCode: DEBIT_SUBTYPES[0]?.code || ''
   });
 
   const [creditForm, setCreditForm] = useState({
     accountNumber: '',
     amount: '',
-    description: ''
+    description: '',
+    subtypeCode: CREDIT_SUBTYPES[0]?.code || ''
   });
 
   const [transferForm, setTransferForm] = useState({
@@ -28,7 +31,8 @@ export const TransactionFormPage = () => {
     destinationAccount: '',
     beneficiaryName: '',
     amount: '',
-    description: ''
+    description: '',
+    subtypeCode: ''
   });
 
   const validateForm = (form, type) => {
@@ -68,6 +72,7 @@ export const TransactionFormPage = () => {
       const response = await debit({
         accountNumber: debitForm.accountNumber,
         amount: parseFloat(debitForm.amount),
+        subtypeCode: debitForm.subtypeCode,
         description: debitForm.description || 'Débito'
       });
 
@@ -77,7 +82,7 @@ export const TransactionFormPage = () => {
         resultingBalance: response.data.resultingBalance
       });
 
-      setDebitForm({ accountNumber: '', amount: '', description: '' });
+      setDebitForm({ accountNumber: '', amount: '', description: '', subtypeCode: DEBIT_SUBTYPES[0]?.code || '' });
     } catch (err) {
       setError(err.response?.data?.message || 'Error al procesar débito');
     } finally {
@@ -97,6 +102,7 @@ export const TransactionFormPage = () => {
       const response = await credit({
         accountNumber: creditForm.accountNumber,
         amount: parseFloat(creditForm.amount),
+        subtypeCode: creditForm.subtypeCode,
         description: creditForm.description || 'Crédito'
       });
 
@@ -106,7 +112,7 @@ export const TransactionFormPage = () => {
         resultingBalance: response.data.resultingBalance
       });
 
-      setCreditForm({ accountNumber: '', amount: '', description: '' });
+      setCreditForm({ accountNumber: '', amount: '', description: '', subtypeCode: CREDIT_SUBTYPES[0]?.code || '' });
     } catch (err) {
       setError(err.response?.data?.message || 'Error al procesar crédito');
     } finally {
@@ -128,6 +134,7 @@ export const TransactionFormPage = () => {
         destinationAccount: transferForm.destinationAccount,
         beneficiaryName: transferForm.beneficiaryName,
         amount: parseFloat(transferForm.amount),
+        uuid: crypto.randomUUID(),
         description: transferForm.description || 'Transferencia'
       });
 
@@ -142,7 +149,8 @@ export const TransactionFormPage = () => {
         destinationAccount: '',
         beneficiaryName: '',
         amount: '',
-        description: ''
+        description: '',
+        subtypeCode: ''
       });
     } catch (err) {
       setError(err.response?.data?.message || 'Error al procesar transferencia');
@@ -219,6 +227,19 @@ export const TransactionFormPage = () => {
                 />
               </div>
               <div>
+                <label className="block text-sm font-medium mb-2">Tipo de Débito *</label>
+                <select
+                  value={debitForm.subtypeCode}
+                  onChange={(e) => setDebitForm(prev => ({ ...prev, subtypeCode: e.target.value }))}
+                  className="w-full p-2 border rounded"
+                  required
+                >
+                  {DEBIT_SUBTYPES.map(subtype => (
+                    <option key={subtype.code} value={subtype.code}>{subtype.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
                 <label className="block text-sm font-medium mb-2">Monto *</label>
                 <input
                   type="number"
@@ -262,6 +283,19 @@ export const TransactionFormPage = () => {
                   className="w-full p-2 border rounded"
                   required
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Tipo de Crédito *</label>
+                <select
+                  value={creditForm.subtypeCode}
+                  onChange={(e) => setCreditForm(prev => ({ ...prev, subtypeCode: e.target.value }))}
+                  className="w-full p-2 border rounded"
+                  required
+                >
+                  {CREDIT_SUBTYPES.map(subtype => (
+                    <option key={subtype.code} value={subtype.code}>{subtype.name}</option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">Monto *</label>

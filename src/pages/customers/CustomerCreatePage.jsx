@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createCustomer } from '../../api/customerApi';
+import { createCustomer, searchCustomer } from '../../api/customerApi';
 // import { getCustomerSubtypes } from '../../api/customerApi'; // No implementado en backend aún
 import { getAllBranches } from '../../api/branchApi';
+import { getAccountsByCustomer } from '../../api/accountApi';
 import { validateEmail, validatePhone, validateIdentification } from '../../helpers/validators';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 
@@ -14,6 +15,12 @@ export const CustomerCreatePage = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  const [legalRepType, setLegalRepType] = useState('CEDULA');
+  const [legalRepNumber, setLegalRepNumber] = useState('');
+  const [selectedRepresentative, setSelectedRepresentative] = useState(null);
+  const [searchingRep, setSearchingRep] = useState(false);
+  const [searchErrorRep, setSearchErrorRep] = useState('');
 
   const [formData, setFormData] = useState({
     identificationType: 'CEDULA',
@@ -60,6 +67,61 @@ export const CustomerCreatePage = () => {
     }));
   };
 
+  const handleSearchRepresentative = async (e) => {
+    e.preventDefault();
+    if (!legalRepNumber.trim()) {
+      setSearchErrorRep('Ingrese un número de identificación');
+      return;
+    }
+
+    setSearchingRep(true);
+    setSearchErrorRep('');
+    setSelectedRepresentative(null);
+
+    try {
+      const customer = await searchCustomer(legalRepType, legalRepNumber);
+
+      // Validar que sea Persona Natural
+      if (customer.data.type !== 'NATURAL') {
+        setSearchErrorRep('El representante legal debe ser una Persona Natural');
+        setSelectedRepresentative(null);
+        return;
+      }
+
+      // Validar que tenga al menos una cuenta
+      const accountsResponse = await getAccountsByCustomer(customer.data.id);
+      const accounts = accountsResponse.data || [];
+
+      if (accounts.length === 0) {
+        setSearchErrorRep('El representante legal debe tener al menos una cuenta activa en el sistema');
+        setSelectedRepresentative(null);
+        return;
+      }
+
+      setSelectedRepresentative({
+        ...customer.data,
+        accountCount: accounts.length
+      });
+      setFormData(prev => ({ ...prev, legalRepresentativeId: customer.data.id.toString() }));
+      setSearchErrorRep('');
+    } catch (err) {
+      let errorMessage = 'Error al buscar representante';
+      if (err.response?.status === 404) {
+        errorMessage = `No se encontró persona natural con ${legalRepType.toLowerCase()}: ${legalRepNumber}`;
+      } else if (err.response?.status === 400) {
+        errorMessage = err.response?.data?.message || 'Datos inválidos';
+      } else if (!err.response) {
+        errorMessage = 'No se puede conectar al servidor';
+      } else {
+        errorMessage = err.response?.data?.message || errorMessage;
+      }
+      setSearchErrorRep(errorMessage);
+      setSelectedRepresentative(null);
+    } finally {
+      setSearchingRep(false);
+    }
+  };
+
   const validateForm = () => {
     if (!formData.identificationNumber) {
       setError('Ingrese el número de identificación');
@@ -97,6 +159,11 @@ export const CustomerCreatePage = () => {
       }
       if (!formData.incorporationDate) {
         setError('Fecha de constitución es requerida');
+        return false;
+      }
+      // Si se intenta guardar con representante legal, debe estar validado
+      if (legalRepNumber.trim() && !selectedRepresentative) {
+        setError('El representante legal debe ser validado correctamente. Busque una Persona Natural con al menos una cuenta activa');
         return false;
       }
     }
@@ -138,7 +205,21 @@ export const CustomerCreatePage = () => {
       const response = await createCustomer(payload);
       navigate(`/clientes/${response.data.id}`);
     } catch (err) {
-      setError(err.response?.data?.message || 'Error al crear cliente');
+      let errorMessage = 'Error al crear cliente';
+
+      if (err.response?.status === 400) {
+        errorMessage = err.response?.data?.message || 'Los datos ingresados no son válidos. Verifique que la identificación sea única';
+      } else if (err.response?.status === 409) {
+        errorMessage = 'Este cliente ya existe en el sistema';
+      } else if (err.response?.status === 500) {
+        errorMessage = 'Error en el servidor. Intente más tarde';
+      } else if (!err.response) {
+        errorMessage = 'No se puede conectar al servidor';
+      } else {
+        errorMessage = err.response?.data?.message || errorMessage;
+      }
+
+      setError(errorMessage);
     } finally {
       setSubmitting(false);
     }
@@ -151,8 +232,14 @@ export const CustomerCreatePage = () => {
       <h1 className="text-3xl font-bold mb-6">Crear Nuevo Cliente</h1>
 
       {error && (
-        <div className="bg-red-100 text-red-800 p-4 rounded mb-6">
-          {error}
+        <div className="bg-gradient-to-br from-orange-50 to-red-50 border-l-4 border-orange-500 p-4 rounded-lg mb-6">
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">⚠️</span>
+            <div>
+              <p className="font-semibold text-gray-900">Error</p>
+              <p className="text-gray-700 text-sm mt-1">{error}</p>
+            </div>
+          </div>
         </div>
       )}
 
@@ -308,7 +395,7 @@ export const CustomerCreatePage = () => {
         {customerType === 'JURIDICO' && (
           <div className="mb-6 p-4 bg-green-50 rounded">
             <h3 className="font-bold mb-4">Datos Empresariales</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium mb-2">Razón Social</label>
                 <input
@@ -331,18 +418,90 @@ export const CustomerCreatePage = () => {
                   required
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Representante Legal (Opcional)</label>
-                <input
-                  type="text"
-                  name="legalRepresentativeId"
-                  value={formData.legalRepresentativeId}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border rounded"
-                  placeholder="ID del representante legal"
-                />
-              </div>
             </div>
+
+            {/* Búsqueda de Representante Legal */}
+            <hr className="my-4" />
+            <h3 className="font-bold mb-4">Representante Legal (Opcional)</h3>
+
+            {!selectedRepresentative && (
+              <form onSubmit={handleSearchRepresentative} className="mb-4">
+                <p className="text-gray-600 text-sm mb-3">Búsque una Persona Natural con al menos una cuenta activa</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Tipo de Identificación</label>
+                    <select
+                      value={legalRepType}
+                      onChange={(e) => setLegalRepType(e.target.value)}
+                      className="w-full p-2 border rounded"
+                    >
+                      <option value="CEDULA">Cédula</option>
+                      <option value="RUC">RUC</option>
+                      <option value="PASAPORTE">Pasaporte</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Número</label>
+                    <input
+                      type="text"
+                      value={legalRepNumber}
+                      onChange={(e) => setLegalRepNumber(e.target.value)}
+                      placeholder="Ingrese el número"
+                      className="w-full p-2 border rounded"
+                    />
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  disabled={searchingRep}
+                  className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 disabled:bg-gray-400"
+                >
+                  {searchingRep ? 'Buscando...' : 'Buscar Representante'}
+                </button>
+              </form>
+            )}
+
+            {searchErrorRep && (
+              <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded mb-4">
+                <p className="font-semibold text-red-800 text-sm">❌ {searchErrorRep}</p>
+              </div>
+            )}
+
+            {selectedRepresentative && (
+              <div className="bg-white border-2 border-green-300 p-4 rounded mb-4">
+                <h4 className="font-bold text-green-700 mb-3">✅ Representante Validado</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                  <div>
+                    <p className="text-gray-600 text-sm">Nombre</p>
+                    <p className="font-semibold">{selectedRepresentative.name}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-600 text-sm">Identificación</p>
+                    <p className="font-semibold">{selectedRepresentative.identification}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-600 text-sm">Tipo</p>
+                    <p className="font-semibold">{selectedRepresentative.type}</p>
+                  </div>
+                  <div>
+                    <p className="text-gray-600 text-sm">Cuentas Activas</p>
+                    <p className="font-semibold text-green-600">{selectedRepresentative.accountCount}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedRepresentative(null);
+                    setLegalRepNumber('');
+                    setSearchErrorRep('');
+                    setFormData(prev => ({ ...prev, legalRepresentativeId: '' }));
+                  }}
+                  className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 text-sm"
+                >
+                  Cambiar Representante
+                </button>
+              </div>
+            )}
           </div>
         )}
 

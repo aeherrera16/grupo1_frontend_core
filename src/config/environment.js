@@ -54,8 +54,7 @@ export const ENDPOINTS = {
     DEBIT: '/transactions/debits',
     CREDIT: '/transactions/credits',
     TRANSFER: '/transactions/transfers',
-    // Nota: El historial de transacciones no está implementado en el backend aún
-    // HISTORY: (accountNumber) => `/transactions/history/${accountNumber}`,
+    HISTORY: (accountNumber) => `/transactions/account/${accountNumber}`,
   },
 
   // Sucursales

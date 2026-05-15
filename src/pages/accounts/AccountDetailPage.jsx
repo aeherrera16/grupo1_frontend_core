@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getAccount, inactivateAccount, blockAccount, suspendAccount } from '../../api/accountApi';
-// getAccountTransactions, activateAccount no están implementados en backend
+import { getTransactionHistory } from '../../api/transactionApi';
 import { formatCurrency, formatDate, formatDateTime, formatStatus } from '../../helpers/formatters';
 import StatusBadge from '../../components/ui/StatusBadge';
 import ConfirmModal from '../../components/ui/ConfirmModal';
@@ -23,9 +23,16 @@ export const AccountDetailPage = () => {
         const accountResponse = await getAccount(accountNumber);
         setAccount(accountResponse.data);
 
-        // getAccountTransactions no implementado en backend aún
-        // const transactionsResponse = await getAccountTransactions(accountNumber, 10);
-        // setTransactions(transactionsResponse.data || []);
+        // Cargar últimas transacciones
+        try {
+          const transactionsResponse = await getTransactionHistory(accountNumber);
+          // Tomar solo las últimas 10
+          setTransactions((transactionsResponse.data || []).slice(0, 10));
+        } catch (txErr) {
+          // Si falla el historial, continuar sin él
+          console.warn('No se pudo cargar el historial de transacciones:', txErr);
+          setTransactions([]);
+        }
       } catch (err) {
         setError(err.response?.data?.message || 'Error al cargar cuenta');
       } finally {

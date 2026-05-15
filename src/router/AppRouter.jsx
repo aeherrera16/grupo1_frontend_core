@@ -6,6 +6,17 @@ import Topbar from '../components/layout/Topbar';
 // Pages
 import { LoginPage } from '../pages/LoginPage';
 import { DashboardPage } from '../pages/DashboardPage';
+import { CustomerListPage } from '../pages/customers/CustomerListPage';
+import { CustomerSearchPage } from '../pages/customers/CustomerSearchPage';
+import { CustomerCreatePage } from '../pages/customers/CustomerCreatePage';
+import { CustomerDetailPage } from '../pages/customers/CustomerDetailPage';
+import { AccountCreatePage } from '../pages/accounts/AccountCreatePage';
+import { AccountDetailPage } from '../pages/accounts/AccountDetailPage';
+import { TransactionFormPage } from '../pages/transactions/TransactionFormPage';
+import { TransactionHistoryPage } from '../pages/transactions/TransactionHistoryPage';
+import { BranchesPage } from '../pages/BranchesPage';
+import { HolidaysPage } from '../pages/HolidaysPage';
+import { NotificationsPage } from '../pages/NotificationsPage';
 
 // Layout para rutas protegidas
 const Layout = ({ pageTitle = 'Dashboard' }) => (
@@ -35,7 +46,17 @@ const router = createBrowserRouter([
     children: [
       { path: 'dashboard', element: <DashboardPage /> },
       { path: '', element: <DashboardPage /> },
-      // Las demás rutas se agregan aquí conforme se implementan las páginas
+      { path: 'clientes', element: <CustomerListPage /> },
+      { path: 'clientes/buscar', element: <CustomerSearchPage /> },
+      { path: 'clientes/nuevo', element: <CustomerCreatePage /> },
+      { path: 'clientes/:id', element: <CustomerDetailPage /> },
+      { path: 'cuentas/nueva', element: <AccountCreatePage /> },
+      { path: 'cuentas/:accountNumber', element: <AccountDetailPage /> },
+      { path: 'transacciones/nueva', element: <TransactionFormPage /> },
+      { path: 'transacciones/historial/:accountNumber', element: <TransactionHistoryPage /> },
+      { path: 'sucursales', element: <BranchesPage /> },
+      { path: 'feriados', element: <HolidaysPage /> },
+      { path: 'notificaciones', element: <NotificationsPage /> },
     ]
   },
   {
