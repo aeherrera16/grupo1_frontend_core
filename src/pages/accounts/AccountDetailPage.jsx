@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getAccount, inactivateAccount, blockAccount, suspendAccount } from '../../api/accountApi';
+import { getAccount, activateAccount, inactivateAccount, blockAccount, suspendAccount } from '../../api/accountApi';
 import { getTransactionHistory } from '../../api/transactionApi';
 import { formatCurrency, formatDate, formatDateTime, formatStatus } from '../../helpers/formatters';
 import StatusBadge from '../../components/ui/StatusBadge';
@@ -49,9 +49,9 @@ export const AccountDetailPage = () => {
     try {
       let response;
       switch (action) {
-        // case 'activate': // No implementado en backend aún
-        //   response = await activateAccount(accountNumber);
-        //   break;
+        case 'activate':
+          response = await activateAccount(accountNumber);
+          break;
         case 'inactivate':
           response = await inactivateAccount(accountNumber);
           break;
@@ -137,13 +137,13 @@ export const AccountDetailPage = () => {
           <div className="bg-white p-6 rounded-lg shadow mb-6">
             <h3 className="font-bold mb-4">Cambiar Estado</h3>
             <div className="flex flex-wrap gap-3">
-              {/* <button
+              <button
                 onClick={() => setConfirmModal({ isOpen: true, action: 'activate' })}
                 disabled={account.status === 'ACTIVO' || actionLoading}
                 className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:bg-gray-400"
               >
                 Activar
-              </button> */}
+              </button>
               <button
                 onClick={() => setConfirmModal({ isOpen: true, action: 'inactivate' })}
                 disabled={account.status === 'INACTIVO' || actionLoading}

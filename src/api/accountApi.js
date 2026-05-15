@@ -10,6 +10,9 @@ export const getAccount = (accountNumber) =>
 export const createAccount = (data) =>
   axiosInstance.post(ENDPOINTS.ACCOUNTS.CREATE, data);
 
+export const activateAccount = (accountNumber) =>
+  axiosInstance.patch(ENDPOINTS.ACCOUNTS.ACTIVATE(accountNumber));
+
 export const inactivateAccount = (accountNumber) =>
   axiosInstance.patch(ENDPOINTS.ACCOUNTS.INACTIVATE(accountNumber));
 
