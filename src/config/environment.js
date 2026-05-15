@@ -45,6 +45,7 @@ export const ENDPOINTS = {
     GET: (accountNumber) => `/accounts/${accountNumber}`,
     CREATE: '/accounts',
     GET_BY_CUSTOMER: (customerId) => `/accounts/customer/${customerId}`,
+    ACTIVATE: (accountNumber) => `/accounts/${accountNumber}/activate`,
     INACTIVATE: (accountNumber) => `/accounts/${accountNumber}/inactivate`,
     BLOCK: (accountNumber) => `/accounts/${accountNumber}/block`,
     ACTIVATE: (accountNumber) => `/accounts/${accountNumber}/activate`,
