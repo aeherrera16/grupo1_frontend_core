@@ -30,6 +30,7 @@ export const TransactionHistoryPage = () => {
       setTransactions(response.data || []);
     } catch (err) {
       let errorMessage = 'Error al cargar transacciones';
+
       if (err.response?.status === 404) {
         errorMessage = `No se encontraron transacciones para la cuenta: ${account}`;
       } else if (err.response?.status === 400) {
@@ -39,6 +40,7 @@ export const TransactionHistoryPage = () => {
       } else {
         errorMessage = err.response?.data?.message || errorMessage;
       }
+
       setError(errorMessage);
       setTransactions([]);
     } finally {
@@ -49,10 +51,12 @@ export const TransactionHistoryPage = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
+
     if (!accountNumber.trim()) {
       setError('Ingrese un número de cuenta');
       return;
     }
+
     fetchTransactions(accountNumber);
   };
 
@@ -76,6 +80,7 @@ export const TransactionHistoryPage = () => {
             placeholder="Número de cuenta"
             className="flex-1 p-2 border rounded"
           />
+
           <button
             type="submit"
             disabled={searching}
@@ -102,7 +107,10 @@ export const TransactionHistoryPage = () => {
 
       {!loading && transactions.length > 0 && (
         <div className="bg-white p-6 rounded-lg shadow overflow-x-auto">
-          <h2 className="text-2xl font-bold mb-4">{transactions.length} Transacciones encontradas</h2>
+          <h2 className="text-2xl font-bold mb-4">
+            {transactions.length} Transacciones encontradas
+          </h2>
+
           <table className="w-full text-sm">
             <thead className="bg-gray-100 border-b">
               <tr>
@@ -114,25 +122,44 @@ export const TransactionHistoryPage = () => {
                 <th className="p-3 text-right">Saldo Resultante</th>
               </tr>
             </thead>
+
             <tbody>
-              {transactions.map((tx, idx) => (
-                <tr key={idx} className="border-b hover:bg-gray-50">
-                  <td className="p-3 text-gray-700">{formatDateTime(tx.date)}</td>
-                  <td className="p-3">
-                    <span className={tx.type === 'DEBITO' ? 'text-red-600 font-semibold' : 'text-green-600 font-semibold'}>
-                      {tx.type}
-                    </span>
-                  </td>
-                  <td className="p-3 text-gray-700 text-xs">{tx.subtypeName || tx.subtypeCode}</td>
-                  <td className="p-3 text-gray-700">{tx.message || tx.description}</td>
-                  <td className="p-3 text-right">
-                    <span className={tx.movementType === 'DEBITO' ? 'text-red-600 font-semibold' : 'text-green-600 font-semibold'}>
-                      {tx.movementType === 'DEBITO' ? '-' : '+'}{formatCurrency(tx.amount)}
-                    </span>
-                  </td>
-                  <td className="p-3 text-right font-semibold">{formatCurrency(tx.resultingBalance)}</td>
-                </tr>
-              ))}
+              {transactions.map((tx, idx) => {
+                const movementType = tx.movementType || tx.type;
+
+                return (
+                  <tr key={idx} className="border-b hover:bg-gray-50">
+                    <td className="p-3 text-gray-700">
+                      {formatDateTime(tx.date)}
+                    </td>
+
+                    <td className="p-3">
+                      <span className={movementType === 'DEBITO' ? 'text-red-600 font-semibold' : 'text-green-600 font-semibold'}>
+                        {movementType}
+                      </span>
+                    </td>
+
+                    <td className="p-3 text-gray-700 text-xs">
+                      {tx.subtypeName || tx.subtypeCode || 'No disponible'}
+                    </td>
+
+                    <td className="p-3 text-gray-700">
+                      {tx.message || tx.description || 'Sin descripción'}
+                    </td>
+
+                    <td className="p-3 text-right">
+                      <span className={movementType === 'DEBITO' ? 'text-red-600 font-semibold' : 'text-green-600 font-semibold'}>
+                        {movementType === 'DEBITO' ? '-' : '+'}
+                        {formatCurrency(tx.amount)}
+                      </span>
+                    </td>
+
+                    <td className="p-3 text-right font-semibold">
+                      {formatCurrency(tx.resultingBalance)}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -140,7 +167,9 @@ export const TransactionHistoryPage = () => {
 
       {!loading && transactions.length === 0 && !error && (
         <div className="bg-blue-50 border border-blue-200 p-6 rounded-lg text-center">
-          <p className="text-gray-600">Busque una cuenta para ver el historial de transacciones</p>
+          <p className="text-gray-600">
+            Busque una cuenta para ver el historial de transacciones
+          </p>
         </div>
       )}
     </div>

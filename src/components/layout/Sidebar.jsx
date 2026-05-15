@@ -3,7 +3,6 @@ import { NavLink } from 'react-router-dom';
 const menuItems = [
   { path: '/dashboard',           label: 'Dashboard' },
   { path: '/clientes',            label: 'Clientes' },
-  { path: '/clientes/lista',       label: 'Lista Clientes' },
   { path: '/cuentas/nueva',       label: 'Nueva Cuenta' },
   { path: '/transacciones/nueva', label: 'Transacciones' },
   { path: '/sucursales',          label: 'Sucursales' },

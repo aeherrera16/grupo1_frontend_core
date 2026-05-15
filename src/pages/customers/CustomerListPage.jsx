@@ -1,63 +1,93 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAllCustomers } from '../../api/customerApi';
+import { searchCustomer } from '../../api/customerApi';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
+
+const ID_TYPES = [
+  { value: 'CEDULA', label: 'Cédula' },
+  { value: 'PASAPORTE', label: 'Pasaporte' },
+  { value: 'RUC', label: 'RUC' },
+];
 
 export const CustomerListPage = () => {
   const navigate = useNavigate();
-  const [customers, setCustomers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [customer, setCustomer] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [filterType, setFilterType] = useState('ALL');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [idType, setIdType] = useState('CEDULA');
+  const [identification, setIdentification] = useState('');
+  const [searched, setSearched] = useState(false);
 
-  useEffect(() => {
-    fetchCustomers();
-  }, []);
-
-  const fetchCustomers = async () => {
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    if (!identification.trim()) return;
+    setLoading(true);
+    setError('');
+    setCustomer(null);
+    setSearched(true);
     try {
-      const response = await getAllCustomers();
-      setCustomers(response.data || []);
-      setError('');
+      const response = await searchCustomer(idType, identification.trim());
+      setCustomer(response.data || null);
     } catch (err) {
-      let errorMessage = 'Error al cargar clientes';
-      if (err.response?.status === 500) {
-        errorMessage = 'Error en el servidor. Intente más tarde';
+      if (err.response?.status === 404) {
+        setError('No se encontró ningún cliente con esa identificación.');
       } else if (!err.response) {
-        errorMessage = 'No se puede conectar al servidor';
+        setError('No se puede conectar al servidor.');
       } else {
-        errorMessage = err.response?.data?.message || errorMessage;
+        setError(err.response?.data?.message || 'Error al buscar el cliente.');
       }
-      setError(errorMessage);
-      setCustomers([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Filtrar y buscar en el cliente
-  const filteredCustomers = useMemo(() => {
-    return customers.filter(customer => {
-      const customerTypeVal = customer.customerType || customer.type;
-      const typeMatch = filterType === 'ALL' || customerTypeVal === filterType;
-      const fullName = customer.fullName ||
-        (customer.firstName ? `${customer.firstName} ${customer.lastName || ''}`.trim() : '') ||
-        customer.businessName ||
-        customer.name || '';
-      const searchMatch =
-        !searchTerm ||
-        fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (customer.identification && customer.identification.includes(searchTerm));
-      return typeMatch && searchMatch;
-    });
-  }, [customers, filterType, searchTerm]);
-
-  if (loading) return <LoadingSpinner fullPage={true} />;
+  const getCustomerName = (c) =>
+    c?.fullName ||
+    (c?.firstName ? `${c.firstName} ${c.lastName || ''}`.trim() : null) ||
+    c?.businessName ||
+    c?.name || '—';
 
   return (
-    <div className="max-w-6xl mx-auto relative">
+    <div className="max-w-4xl mx-auto relative">
       <h1 className="text-3xl font-bold mb-6">Gestionar Clientes</h1>
+
+      {/* Formulario de búsqueda */}
+      <form onSubmit={handleSearch} className="bg-white p-6 rounded-lg shadow mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+          <div>
+            <label className="block text-sm font-medium mb-2">Tipo de identificación</label>
+            <select
+              value={idType}
+              onChange={(e) => setIdType(e.target.value)}
+              className="w-full p-2 border rounded"
+            >
+              {ID_TYPES.map((t) => (
+                <option key={t.value} value={t.value}>{t.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Número de identificación</label>
+            <input
+              type="text"
+              value={identification}
+              onChange={(e) => setIdentification(e.target.value)}
+              placeholder="Ej: 1712345678"
+              className="w-full p-2 border rounded"
+              required
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={loading || !identification.trim()}
+            className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 font-semibold disabled:opacity-50 transition"
+          >
+            {loading ? 'Buscando...' : 'Buscar'}
+          </button>
+        </div>
+      </form>
+
+      {loading && <LoadingSpinner />}
 
       {error && (
         <div className="bg-gradient-to-br from-orange-50 to-red-50 border-l-4 border-orange-500 p-4 rounded-lg mb-6">
@@ -71,43 +101,10 @@ export const CustomerListPage = () => {
         </div>
       )}
 
-      {/* Filtros y búsqueda */}
-      <div className="bg-white p-6 rounded-lg shadow mb-6 space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-2">Filtrar por tipo</label>
-            <select
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
-              className="w-full p-2 border rounded"
-            >
-              <option value="ALL">Todos</option>
-              <option value="NATURAL">Personas Naturales</option>
-              <option value="JURIDICO">Personas Jurídicas</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2">Buscar por nombre o identificación</label>
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Nombre, razón social o identificación..."
-              className="w-full p-2 border rounded"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Tabla de clientes */}
-      <div className="bg-white p-6 rounded-lg shadow">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold">
-            {filteredCustomers.length} {filteredCustomers.length === 1 ? 'Cliente' : 'Clientes'}
-          </h2>
-        </div>
-
-        {filteredCustomers.length > 0 ? (
+      {/* Resultado */}
+      {customer && (
+        <div className="bg-white p-6 rounded-lg shadow">
+          <h2 className="text-xl font-bold mb-4">Resultado</h2>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
               <thead className="bg-gray-100 border-b">
@@ -121,51 +118,52 @@ export const CustomerListPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredCustomers.map((customer) => (
-                  <tr key={customer.id} className="border-b hover:bg-gray-50">
-                    <td className="p-3 font-semibold">{customer.identification}</td>
-                    <td className="p-3">
-                      {customer.fullName ||
-                        (customer.firstName ? `${customer.firstName} ${customer.lastName || ''}`.trim() : null) ||
-                        customer.businessName ||
-                        customer.name}
-                    </td>
-                    <td className="p-3">
-                      <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                        (customer.customerType || customer.type) === 'NATURAL'
-                          ? 'bg-blue-100 text-blue-800'
-                          : 'bg-green-100 text-green-800'
-                      }`}>
-                        {(customer.customerType || customer.type) === 'NATURAL' ? 'Persona Natural' : 'Empresa'}
-                      </span>
-                    </td>
-                    <td className="p-3 text-gray-600">{customer.email}</td>
-                    <td className="p-3 text-gray-600">{customer.phone}</td>
-                    <td className="p-3 flex gap-2">
-                      <button
-                        onClick={() => navigate(`/clientes/${customer.id}`)}
-                        className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-xs font-semibold"
-                      >
-                        Ver
-                      </button>
-                      <button
-                        onClick={() => navigate(`/cuentas/nueva?customerId=${customer.id}`)}
-                        className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-xs font-semibold"
-                      >
-                        Nueva Cuenta
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                <tr className="border-b hover:bg-gray-50">
+                  <td className="p-3 font-semibold">{customer.identification}</td>
+                  <td className="p-3">{getCustomerName(customer)}</td>
+                  <td className="p-3">
+                    <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                      (customer.customerType || customer.type) === 'NATURAL'
+                        ? 'bg-blue-100 text-blue-800'
+                        : 'bg-green-100 text-green-800'
+                    }`}>
+                      {(customer.customerType || customer.type) === 'NATURAL' ? 'Persona Natural' : 'Empresa'}
+                    </span>
+                  </td>
+                  <td className="p-3 text-gray-600">{customer.email || '—'}</td>
+                  <td className="p-3 text-gray-600">{customer.phone || '—'}</td>
+                  <td className="p-3 flex gap-2">
+                    <button
+                      onClick={() => navigate(`/clientes/${customer.id}`)}
+                      className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-xs font-semibold"
+                    >
+                      Ver
+                    </button>
+                    <button
+                      onClick={() => navigate(`/cuentas/nueva?customerId=${customer.id}`)}
+                      className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-xs font-semibold"
+                    >
+                      Nueva Cuenta
+                    </button>
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
-        ) : (
-          <p className="text-gray-600 py-8 text-center">
-            {customers.length === 0 ? 'No hay clientes registrados' : 'No se encontraron clientes que coincidan con los filtros'}
-          </p>
-        )}
-      </div>
+        </div>
+      )}
+
+      {!loading && searched && !customer && !error && (
+        <div className="bg-white p-8 rounded-lg shadow text-center text-gray-500">
+          No se encontró ningún cliente.
+        </div>
+      )}
+
+      {!searched && (
+        <div className="bg-white p-8 rounded-lg shadow text-center text-gray-400">
+          Ingresa un número de identificación para buscar un cliente.
+        </div>
+      )}
 
       {/* Botón flotante para crear nuevo cliente */}
       <button

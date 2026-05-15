@@ -1,16 +1,34 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createAccount, getAccountsByCustomer } from '../../api/accountApi';
-import { searchCustomer, getCustomer } from '../../api/customerApi';
+import { getCustomer } from '../../api/customerApi';
 import { getAllBranches } from '../../api/branchApi';
 import { validateCurrency } from '../../helpers/validators';
 import { ACCOUNT_TYPES } from '../../constants/accountTypes';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import { CustomerSelector } from '../../components/common/CustomerSelector';
 
 const ACCOUNT_MINIMUMS = { 1: 10, 2: 100, 3: 0 };
 
+function formatCustomerType(type) {
+  if (type === 'NATURAL') return 'Persona Natural';
+  if (type === 'JURIDICO') return 'Persona Jurídica';
+  return type || '';
+}
+
+function buildCustomerName(customer) {
+  return (
+    customer.fullName ||
+    (customer.firstName
+      ? `${customer.firstName} ${customer.lastName || ''}`.trim()
+      : null) ||
+    customer.businessName ||
+    customer.name ||
+    ''
+  );
+}
+
 export const AccountCreatePage = () => {
-  console.log('🔥 AccountCreatePage cargado con cambios nuevos v2');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const prefilledCustomerId = searchParams.get('customerId');
@@ -19,35 +37,38 @@ export const AccountCreatePage = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [branchError, setBranchError] = useState('');
 
-  const [identificationType, setIdentificationType] = useState('CEDULA');
-  const [identificationNumber, setIdentificationNumber] = useState('');
+  const [customerSelectorValue, setCustomerSelectorValue] = useState(null);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [customerAccounts, setCustomerAccounts] = useState([]);
-  const [searching, setSearching] = useState(false);
-  const [searchError, setSearchError] = useState('');
+  const [customerLoading, setCustomerLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     customerId: '',
     accountSubtypeId: '1',
     branchId: '',
     initialBalance: '',
-    isFavorite: false
+    isFavorite: false,
   });
 
-  // Si viene un customerId en los parámetros de búsqueda, precargar cliente
+  // Prefetch customer when ?customerId=X is present in URL
   useEffect(() => {
     if (!prefilledCustomerId) return;
 
     const prefillCustomer = async () => {
-      setSearching(true);
+      setCustomerLoading(true);
       try {
-        const customerResp = await getCustomer(prefilledCustomerId);
-        const customerData = customerResp.data;
+        const resp = await getCustomer(prefilledCustomerId);
+        const customerData = resp.data;
         setSelectedCustomer(customerData);
-        setFormData(prev => ({ ...prev, customerId: customerData.id }));
 
-        // Cargar cuentas del cliente
+        const name = buildCustomerName(customerData);
+        const identification =
+          customerData.identificationNumber || customerData.identification || '';
+        setCustomerSelectorValue({ id: customerData.id, name, identification });
+        setFormData((prev) => ({ ...prev, customerId: customerData.id }));
+
         try {
           const accountsResp = await getAccountsByCustomer(customerData.id);
           setCustomerAccounts(accountsResp.data || []);
@@ -55,9 +76,9 @@ export const AccountCreatePage = () => {
           setCustomerAccounts([]);
         }
       } catch {
-        // Silenciosamente ignorar error si no se puede cargar
+        // silent — user can still search manually
       } finally {
-        setSearching(false);
+        setCustomerLoading(false);
       }
     };
 
@@ -70,63 +91,52 @@ export const AccountCreatePage = () => {
         const branchesResponse = await getAllBranches();
         setBranches(branchesResponse.data || []);
         setLoading(false);
-      } catch (err) {
+      } catch {
         setError('Error al cargar datos del formulario');
         setLoading(false);
       }
     };
-
     fetchData();
   }, []);
 
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    if (!identificationNumber.trim()) {
-      setSearchError('Ingrese un número de identificación');
+  const handleCustomerChange = async (customerInfo) => {
+    setError('');
+    if (!customerInfo) {
+      setCustomerSelectorValue(null);
+      setSelectedCustomer(null);
+      setCustomerAccounts([]);
+      setFormData((prev) => ({ ...prev, customerId: '' }));
       return;
     }
 
-    setSearching(true);
-    setSearchError('');
-    setSelectedCustomer(null);
-    setCustomerAccounts([]);
-    try {
-      const response = await searchCustomer(identificationType, identificationNumber);
-      const customerData = response.data;
-      setSelectedCustomer(customerData);
-      setFormData(prev => ({ ...prev, customerId: customerData.id }));
-      setSearchError('');
+    setCustomerSelectorValue(customerInfo);
+    setFormData((prev) => ({ ...prev, customerId: customerInfo.id }));
+    setCustomerLoading(true);
 
-      // Cargar cuentas del cliente para validar duplicados
+    try {
+      const resp = await getCustomer(customerInfo.id);
+      const customerData = resp.data;
+      setSelectedCustomer(customerData);
+
       try {
         const accountsResp = await getAccountsByCustomer(customerData.id);
         setCustomerAccounts(accountsResp.data || []);
       } catch {
         setCustomerAccounts([]);
       }
-    } catch (err) {
-      let errorMessage = 'Error al buscar cliente';
-      if (err.response?.status === 404) {
-        errorMessage = `No se encontró cliente con ${identificationType.toLowerCase()}: ${identificationNumber}`;
-      } else if (err.response?.status === 400) {
-        errorMessage = err.response?.data?.message || 'Datos inválidos';
-      } else if (!err.response) {
-        errorMessage = 'No se puede conectar al servidor';
-      } else {
-        errorMessage = err.response?.data?.message || errorMessage;
-      }
-      setSearchError(errorMessage);
+    } catch {
       setSelectedCustomer(null);
     } finally {
-      setSearching(false);
+      setCustomerLoading(false);
     }
   };
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
+    if (name === 'branchId') setBranchError('');
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? checked : value,
     }));
   };
 
@@ -136,29 +146,30 @@ export const AccountCreatePage = () => {
       return false;
     }
 
-    // Validación KYC
-    const kycAprobado = selectedCustomer.status === 'APROBADO' || selectedCustomer.status === 'ACTIVO';
+    const kycAprobado =
+      selectedCustomer.status === 'APROBADO' ||
+      selectedCustomer.status === 'ACTIVO';
     if (!kycAprobado) {
       setError('El cliente debe tener estado KYC aprobado para crear una cuenta');
       return false;
     }
 
     if (!formData.branchId) {
-      setError('Seleccione una sucursal');
+      setBranchError('Seleccione una sucursal');
       return false;
     }
 
-    // Validación de cuenta duplicada
     const accountSubtypeId = parseInt(formData.accountSubtypeId);
     const existingAccount = customerAccounts.find(
-      acc => parseInt(acc.accountSubtypeId) === accountSubtypeId
+      (acc) => parseInt(acc.accountSubtypeId) === accountSubtypeId,
     );
     if (existingAccount) {
-      setError('El cliente ya tiene una cuenta de este tipo. No es posible crear más de una cuenta del mismo tipo.');
+      setError(
+        'El cliente ya tiene una cuenta de este tipo. No es posible crear más de una cuenta del mismo tipo.',
+      );
       return false;
     }
 
-    // Validación de monto mínimo
     const minAmount = ACCOUNT_MINIMUMS[accountSubtypeId] ?? 0;
     if (!formData.initialBalance) {
       setError(`El monto inicial es requerido. Mínimo: $${minAmount} USD`);
@@ -172,7 +183,9 @@ export const AccountCreatePage = () => {
     }
 
     if (amount < minAmount) {
-      setError(`El monto inicial mínimo para este tipo de cuenta es $${minAmount} USD`);
+      setError(
+        `El monto inicial mínimo para este tipo de cuenta es $${minAmount} USD`,
+      );
       return false;
     }
 
@@ -182,6 +195,7 @@ export const AccountCreatePage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setBranchError('');
 
     if (!validateForm()) return;
 
@@ -191,8 +205,10 @@ export const AccountCreatePage = () => {
         customerId: parseInt(formData.customerId),
         accountSubtypeId: parseInt(formData.accountSubtypeId),
         branchId: parseInt(formData.branchId),
-        initialBalance: formData.initialBalance ? parseFloat(formData.initialBalance) : 0,
-        isFavorite: formData.isFavorite
+        initialBalance: formData.initialBalance
+          ? parseFloat(formData.initialBalance)
+          : 0,
+        isFavorite: formData.isFavorite,
       };
 
       const response = await createAccount(payload);
@@ -201,7 +217,8 @@ export const AccountCreatePage = () => {
       let errorMessage = 'Error al crear cuenta';
 
       if (err.response?.status === 400) {
-        errorMessage = err.response?.data?.message || 'Los datos ingresados no son válidos';
+        errorMessage =
+          err.response?.data?.message || 'Los datos ingresados no son válidos';
       } else if (err.response?.status === 404) {
         errorMessage = 'Cliente o sucursal no encontrado';
       } else if (err.response?.status === 500) {
@@ -220,6 +237,12 @@ export const AccountCreatePage = () => {
 
   if (loading) return <LoadingSpinner fullPage={true} />;
 
+  const customerName = selectedCustomer ? buildCustomerName(selectedCustomer) : '';
+  const kycAprobado =
+    selectedCustomer &&
+    (selectedCustomer.status === 'APROBADO' ||
+      selectedCustomer.status === 'ACTIVO');
+
   return (
     <div className="max-w-2xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">Crear Nueva Cuenta</h1>
@@ -236,77 +259,37 @@ export const AccountCreatePage = () => {
         </div>
       )}
 
-      {/* Sección de búsqueda de cliente */}
-      {!selectedCustomer && (
-        <form onSubmit={handleSearch} className="bg-white p-6 rounded-lg shadow mb-6">
-          <h2 className="text-lg font-bold mb-4">Seleccionar Cliente</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Tipo de Identificación</label>
-              <select
-                value={identificationType}
-                onChange={(e) => setIdentificationType(e.target.value)}
-                className="w-full p-2 border rounded"
-              >
-                <option value="CEDULA">Cédula</option>
-                <option value="RUC">RUC</option>
-                <option value="PASAPORTE">Pasaporte</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">Número</label>
-              <input
-                type="text"
-                value={identificationNumber}
-                onChange={(e) => setIdentificationNumber(e.target.value)}
-                placeholder="Ingrese el número"
-                className="w-full p-2 border rounded"
-              />
-            </div>
-          </div>
-          <button
-            type="submit"
-            disabled={searching}
-            className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 disabled:bg-gray-400"
-          >
-            {searching ? 'Buscando...' : 'Buscar Cliente'}
-          </button>
-        </form>
-      )}
-
-      {searchError && (
-        <div className="bg-gradient-to-br from-orange-50 to-red-50 border-l-4 border-orange-500 p-4 rounded-lg mb-6">
-          <div className="flex items-start gap-3">
-            <span className="text-2xl">⚠️</span>
-            <div>
-              <p className="font-semibold text-gray-900">Error en búsqueda</p>
-              <p className="text-gray-700 text-sm mt-1">{searchError}</p>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Customer Selector */}
+      <div className="bg-white p-6 rounded-lg shadow mb-6">
+        <h2 className="text-lg font-bold mb-4">Seleccionar Cliente</h2>
+        {customerLoading ? (
+          <LoadingSpinner />
+        ) : (
+          <CustomerSelector
+            value={customerSelectorValue}
+            onChange={handleCustomerChange}
+          />
+        )}
+      </div>
 
       {selectedCustomer && (
         <>
-          <div className={`border p-6 rounded-lg shadow mb-6 ${
-            selectedCustomer.status === 'APROBADO' || selectedCustomer.status === 'ACTIVO'
-              ? 'bg-green-50 border-green-200'
-              : 'bg-red-50 border-red-200'
-          }`}>
+          <div
+            className={`border p-6 rounded-lg shadow mb-6 ${
+              kycAprobado
+                ? 'bg-green-50 border-green-200'
+                : 'bg-red-50 border-red-200'
+            }`}
+          >
             <h2 className="text-lg font-bold mb-4">Cliente Seleccionado</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
                 <p className="text-gray-600 text-sm">Nombre</p>
-                <p className="font-semibold">
-                  {selectedCustomer.fullName ||
-                    (selectedCustomer.firstName ? `${selectedCustomer.firstName} ${selectedCustomer.lastName || ''}`.trim() : null) ||
-                    selectedCustomer.businessName ||
-                    selectedCustomer.name}
-                </p>
+                <p className="font-semibold">{customerName}</p>
               </div>
               <div>
                 <p className="text-gray-600 text-sm">Tipo</p>
-                <p className="font-semibold">{selectedCustomer.type}</p>
+                <p className="font-semibold">{formatCustomerType(selectedCustomer.type)}</p>
               </div>
               <div>
                 <p className="text-gray-600 text-sm">Identificación</p>
@@ -318,38 +301,27 @@ export const AccountCreatePage = () => {
               </div>
               <div>
                 <p className="text-gray-600 text-sm">Estado KYC</p>
-                <p className={`font-semibold ${
-                  selectedCustomer.status === 'APROBADO'
-                    ? 'text-green-700'
-                    : 'text-red-700'
-                }`}>
+                <p
+                  className={`font-semibold ${
+                    kycAprobado ? 'text-green-700' : 'text-red-700'
+                  }`}
+                >
                   {selectedCustomer.status}
                 </p>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedCustomer(null);
-                setIdentificationNumber('');
-                setSearchError('');
-                setCustomerAccounts([]);
-              }}
-              className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700"
-            >
-              Cambiar Cliente
-            </button>
           </div>
 
-          {selectedCustomer.status !== 'APROBADO' && selectedCustomer.status !== 'ACTIVO' && (
+          {!kycAprobado && (
             <div className="bg-red-50 border-l-4 border-red-600 p-5 rounded-lg mb-6">
               <div className="flex items-start gap-3">
                 <span className="text-2xl">🔒</span>
                 <div>
                   <p className="font-bold text-red-800">KYC no aprobado</p>
                   <p className="text-red-700 text-sm mt-1">
-                    El cliente debe tener estado KYC "APROBADO" para abrir una cuenta.
-                    Por favor, completa el proceso de KYC antes de continuar.
+                    El cliente debe tener estado KYC "APROBADO" para abrir una
+                    cuenta. Por favor, completa el proceso de KYC antes de
+                    continuar.
                   </p>
                 </div>
               </div>
@@ -358,26 +330,35 @@ export const AccountCreatePage = () => {
         </>
       )}
 
-      {!selectedCustomer && (
+      {!customerSelectorValue && !customerLoading && (
         <div className="bg-blue-50 border border-blue-300 p-4 rounded-lg mb-6">
-          <p className="text-blue-800">👆 Busque y seleccione un cliente arriba para continuar</p>
+          <p className="text-blue-800">
+            👆 Busque y seleccione un cliente arriba para continuar
+          </p>
         </div>
       )}
 
-      {selectedCustomer && (selectedCustomer.status === 'APROBADO' || selectedCustomer.status === 'ACTIVO') && (
+      {selectedCustomer && kycAprobado && (
         <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow">
-          {/* Cliente ya seleccionado */}
           <div className="mb-6 p-3 bg-blue-50 border border-blue-200 rounded">
-            <p className="text-sm text-gray-600">Cliente seleccionado: <span className="font-semibold">
-              {selectedCustomer.fullName ||
-                (selectedCustomer.firstName ? `${selectedCustomer.firstName} ${selectedCustomer.lastName || ''}`.trim() : null) ||
-                selectedCustomer.businessName ||
-                selectedCustomer.name}
-            </span></p>
+            <p className="text-sm text-gray-600">
+              Cliente seleccionado:{' '}
+              <span className="font-semibold">{customerName}</span>
+            </p>
+            <p className="text-gray-500 text-xs mt-1">
+              Tipo: {formatCustomerType(selectedCustomer.type || customerSelectorValue?.type)}
+            </p>
+            {selectedCustomer.status && (
+              <p className={`text-xs mt-0.5 ${kycAprobado ? 'text-green-700' : 'text-red-600'}`}>
+                Estado KYC: {selectedCustomer.status}
+              </p>
+            )}
           </div>
 
           <div className="mb-6">
-            <label className="block text-sm font-medium mb-2">Tipo de Cuenta *</label>
+            <label className="block text-sm font-medium mb-2">
+              Tipo de Cuenta *
+            </label>
             <select
               name="accountSubtypeId"
               value={formData.accountSubtypeId}
@@ -385,8 +366,10 @@ export const AccountCreatePage = () => {
               className="w-full p-2 border rounded"
               required
             >
-              {ACCOUNT_TYPES.map(at => (
-                <option key={at.id} value={at.id}>{at.name}</option>
+              {ACCOUNT_TYPES.map((at) => (
+                <option key={at.id} value={at.id}>
+                  {at.name}
+                </option>
               ))}
             </select>
           </div>
@@ -407,18 +390,25 @@ export const AccountCreatePage = () => {
               name="branchId"
               value={formData.branchId}
               onChange={handleInputChange}
-              className="w-full p-2 border rounded"
+              className={`w-full p-2 border rounded ${branchError ? 'border-red-500' : ''}`}
               required
             >
-              <option value="">Seleccionar...</option>
-              {branches.map(b => (
-                <option key={b.id} value={b.id}>{b.name}</option>
+              <option value="">Seleccione una sucursal</option>
+              {branches.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.name}
+                </option>
               ))}
             </select>
+            {branchError && (
+              <p className="text-red-600 text-sm mt-1">{branchError}</p>
+            )}
           </div>
 
           <div className="mb-6">
-            <label className="block text-sm font-medium mb-2">Saldo Inicial *</label>
+            <label className="block text-sm font-medium mb-2">
+              Saldo Inicial *
+            </label>
             <input
               type="number"
               name="initialBalance"
@@ -431,39 +421,42 @@ export const AccountCreatePage = () => {
               required
             />
             <p className="text-gray-600 text-sm mt-1">
-              Monto mínimo: ${ACCOUNT_MINIMUMS[parseInt(formData.accountSubtypeId)] ?? 0} USD
+              Monto mínimo: $
+              {ACCOUNT_MINIMUMS[parseInt(formData.accountSubtypeId)] ?? 0} USD
             </p>
           </div>
 
-        <div className="mb-6 flex items-center">
-          <input
-            type="checkbox"
-            id="isFavorite"
-            name="isFavorite"
-            checked={formData.isFavorite}
-            onChange={handleInputChange}
-            className="mr-3"
-          />
-          <label htmlFor="isFavorite" className="text-sm">Marcar como cuenta favorita</label>
-        </div>
+          <div className="mb-6 flex items-center">
+            <input
+              type="checkbox"
+              id="isFavorite"
+              name="isFavorite"
+              checked={formData.isFavorite}
+              onChange={handleInputChange}
+              className="mr-3"
+            />
+            <label htmlFor="isFavorite" className="text-sm">
+              Marcar como cuenta favorita
+            </label>
+          </div>
 
-        <div className="flex gap-3">
-          <button
-            type="submit"
-            disabled={submitting}
-            className="flex-1 bg-blue-600 text-white p-2 rounded hover:bg-blue-700 disabled:bg-gray-400"
-          >
-            {submitting ? 'Creando...' : 'Crear Cuenta'}
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="flex-1 bg-gray-600 text-white p-2 rounded hover:bg-gray-700"
-          >
-            Cancelar
-          </button>
-        </div>
-      </form>
+          <div className="flex gap-3">
+            <button
+              type="submit"
+              disabled={submitting}
+              className="flex-1 bg-blue-600 text-white p-2 rounded hover:bg-blue-700 disabled:bg-gray-400"
+            >
+              {submitting ? 'Creando...' : 'Crear Cuenta'}
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="flex-1 bg-gray-600 text-white p-2 rounded hover:bg-gray-700"
+            >
+              Cancelar
+            </button>
+          </div>
+        </form>
       )}
     </div>
   );
