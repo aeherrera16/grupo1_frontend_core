@@ -10,6 +10,12 @@ import { CustomerSelector } from '../../components/common/CustomerSelector';
 
 const ACCOUNT_MINIMUMS = { 1: 10, 2: 100, 3: 0 };
 
+function formatCustomerType(type) {
+  if (type === 'NATURAL') return 'Persona Natural';
+  if (type === 'JURIDICO') return 'Persona Jurídica';
+  return type || '';
+}
+
 function buildCustomerName(customer) {
   return (
     customer.fullName ||
@@ -283,7 +289,7 @@ export const AccountCreatePage = () => {
               </div>
               <div>
                 <p className="text-gray-600 text-sm">Tipo</p>
-                <p className="font-semibold">{selectedCustomer.type}</p>
+                <p className="font-semibold">{formatCustomerType(selectedCustomer.type)}</p>
               </div>
               <div>
                 <p className="text-gray-600 text-sm">Identificación</p>
@@ -339,6 +345,14 @@ export const AccountCreatePage = () => {
               Cliente seleccionado:{' '}
               <span className="font-semibold">{customerName}</span>
             </p>
+            <p className="text-gray-500 text-xs mt-1">
+              Tipo: {formatCustomerType(selectedCustomer.type || customerSelectorValue?.type)}
+            </p>
+            {selectedCustomer.status && (
+              <p className={`text-xs mt-0.5 ${kycAprobado ? 'text-green-700' : 'text-red-600'}`}>
+                Estado KYC: {selectedCustomer.status}
+              </p>
+            )}
           </div>
 
           <div className="mb-6">
