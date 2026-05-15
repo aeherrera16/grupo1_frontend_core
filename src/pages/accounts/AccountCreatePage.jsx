@@ -430,6 +430,7 @@ export const AccountCreatePage = () => {
           </button>
         </div>
       </form>
+      )}
     </div>
   );
 };
