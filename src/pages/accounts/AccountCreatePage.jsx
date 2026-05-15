@@ -34,11 +34,33 @@ export const AccountCreatePage = () => {
     isFavorite: false
   });
 
-  // Si viene un customerId en los parámetros de búsqueda, cargarlo
+  // Si viene un customerId en los parámetros de búsqueda, precargar cliente
   useEffect(() => {
-    if (prefilledCustomerId) {
-      setFormData(prev => ({ ...prev, customerId: prefilledCustomerId }));
-    }
+    if (!prefilledCustomerId) return;
+
+    const prefillCustomer = async () => {
+      setSearching(true);
+      try {
+        const customerResp = await getCustomer(prefilledCustomerId);
+        const customerData = customerResp.data;
+        setSelectedCustomer(customerData);
+        setFormData(prev => ({ ...prev, customerId: customerData.id }));
+
+        // Cargar cuentas del cliente
+        try {
+          const accountsResp = await getAccountsByCustomer(customerData.id);
+          setCustomerAccounts(accountsResp.data || []);
+        } catch {
+          setCustomerAccounts([]);
+        }
+      } catch {
+        // Silenciosamente ignorar error si no se puede cargar
+      } finally {
+        setSearching(false);
+      }
+    };
+
+    prefillCustomer();
   }, [prefilledCustomerId]);
 
   useEffect(() => {

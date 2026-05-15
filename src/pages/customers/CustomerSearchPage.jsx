@@ -120,6 +120,14 @@ export const CustomerSearchPage = () => {
               <p className="text-gray-600">Teléfono</p>
               <p className="font-semibold">{searchResult.phone}</p>
             </div>
+            <div>
+              <p className="text-gray-600">Estado KYC</p>
+              <p className={`font-semibold text-sm ${
+                searchResult.status === 'APROBADO' ? 'text-green-600' : 'text-red-600'
+              }`}>
+                {searchResult.status}
+              </p>
+            </div>
           </div>
           <div className="flex gap-3">
             <button
@@ -130,7 +138,13 @@ export const CustomerSearchPage = () => {
             </button>
             <button
               onClick={() => navigate(`/cuentas/nueva?customerId=${searchResult.id}`)}
-              className="flex-1 bg-green-600 text-white p-2 rounded hover:bg-green-700"
+              disabled={searchResult.status !== 'APROBADO'}
+              className={`flex-1 text-white p-2 rounded ${
+                searchResult.status === 'APROBADO'
+                  ? 'bg-green-600 hover:bg-green-700'
+                  : 'bg-gray-400 cursor-not-allowed'
+              }`}
+              title={searchResult.status !== 'APROBADO' ? 'El cliente necesita KYC aprobado para crear cuenta' : ''}
             >
               Nueva Cuenta
             </button>

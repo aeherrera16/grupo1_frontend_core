@@ -67,8 +67,7 @@ export const CustomerCreatePage = () => {
     }));
   };
 
-  const handleSearchRepresentative = async (e) => {
-    e.preventDefault();
+  const handleSearchRepresentative = async () => {
     if (!legalRepNumber.trim()) {
       setSearchErrorRep('Ingrese un número de identificación');
       return;
@@ -425,7 +424,7 @@ export const CustomerCreatePage = () => {
             <h3 className="font-bold mb-4">Representante Legal (Opcional)</h3>
 
             {!selectedRepresentative && (
-              <form onSubmit={handleSearchRepresentative} className="mb-4">
+              <div className="mb-4">
                 <p className="text-gray-600 text-sm mb-3">Búsque una Persona Natural con al menos una cuenta activa</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div>
@@ -452,13 +451,14 @@ export const CustomerCreatePage = () => {
                   </div>
                 </div>
                 <button
-                  type="submit"
+                  type="button"
+                  onClick={handleSearchRepresentative}
                   disabled={searchingRep}
                   className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 disabled:bg-gray-400"
                 >
                   {searchingRep ? 'Buscando...' : 'Buscar Representante'}
                 </button>
-              </form>
+              </div>
             )}
 
             {searchErrorRep && (
