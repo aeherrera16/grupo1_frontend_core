@@ -3,26 +3,21 @@ import { AuthContext } from './authContextObject';
 
 import { loginStaff } from '../api/authApi';
 
-const staffPortals = new Set(['operador', 'cajero']);
 const STORAGE_KEY = 'banquito_auth';
 
-export function AuthProvider({ children }) {
-  const [auth, setAuth] = useState({
-    isAuthenticated: false,
-    portal: null,
-    user: null,
-  });
+const DEFAULT_AUTH = { isAuthenticated: false, portal: null, user: null };
 
-  useEffect(() => {
-    const storedAuth = localStorage.getItem(STORAGE_KEY);
-    if (storedAuth) {
-      try {
-        setAuth(JSON.parse(storedAuth));
-      } catch (e) {
-        console.error('Error al restaurar sesión:', e);
-      }
-    }
-  }, []);
+function loadStoredAuth() {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored ? JSON.parse(stored) : DEFAULT_AUTH;
+  } catch {
+    return DEFAULT_AUTH;
+  }
+}
+
+export function AuthProvider({ children }) {
+  const [auth, setAuth] = useState(loadStoredAuth);
 
   useEffect(() => {
     const handleLogout = () => {

@@ -1,12 +1,21 @@
 import { NavLink } from 'react-router-dom';
+import {
+  LayoutDashboard,
+  Users,
+  UserPlus,
+  Repeat,
+  Building2,
+  Bell,
+  Menu,
+} from 'lucide-react';
 
 const menuItems = [
-  { path: '/dashboard',           label: 'Dashboard' },
-  { path: '/clientes',            label: 'Clientes' },
-  { path: '/cuentas/nueva',       label: 'Nueva Cuenta' },
-  { path: '/transacciones/nueva', label: 'Transacciones' },
-  { path: '/sucursales',          label: 'Sucursales' },
-  { path: '/notificaciones',      label: 'Notificaciones' },
+  { path: '/dashboard',           label: 'Dashboard',      Icon: LayoutDashboard },
+  { path: '/clientes',            label: 'Clientes',       Icon: Users },
+  { path: '/cuentas/nueva',       label: 'Nueva Cuenta',   Icon: UserPlus },
+  { path: '/transacciones/nueva', label: 'Transacciones',  Icon: Repeat },
+  { path: '/sucursales',          label: 'Sucursales',     Icon: Building2 },
+  { path: '/notificaciones',      label: 'Notificaciones', Icon: Bell },
 ];
 
 const Sidebar = ({ isOpen, onToggle }) => {
@@ -29,37 +38,40 @@ const Sidebar = ({ isOpen, onToggle }) => {
           className="p-1.5 rounded text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
           aria-label="Expandir o contraer menú"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
+          <Menu size={16} strokeWidth={1.5} color="currentColor" />
         </button>
       </div>
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
-        {menuItems.map((item) => (
+        {menuItems.map(({ path, label, Icon }) => (
           <NavLink
-            key={item.path}
-            to={item.path}
-            title={!isOpen ? item.label : undefined}
+            key={path}
+            to={path}
+            title={!isOpen ? label : undefined}
             className={({ isActive }) =>
-              `flex items-center rounded-md transition-colors duration-150 no-underline ${
+              `flex items-center gap-3 rounded-md transition-colors duration-150 no-underline ${
                 isOpen ? 'px-3 py-2.5' : 'justify-center px-0 py-2.5'
               } ${
                 isActive
-                  ? 'bg-blue-50 text-[#1E40AF] font-semibold'
-                  : 'text-[#1E293B] font-semibold hover:bg-blue-50 hover:text-[#1E40AF]'
+                  ? 'bg-blue-50 text-[#1E40AF]'
+                  : 'text-slate-500 hover:bg-blue-50 hover:text-[#1E40AF]'
               }`
             }
           >
-            {isOpen ? (
-              <span className="text-sm whitespace-nowrap tracking-tight">
-                {item.label}
-              </span>
-            ) : (
-              <span className="text-xs font-bold w-7 h-7 flex items-center justify-center rounded bg-slate-100 text-slate-500">
-                {item.label.slice(0, 2).toUpperCase()}
-              </span>
+            {({ isActive }) => (
+              <>
+                <Icon
+                  size={20}
+                  strokeWidth={1.5}
+                  color={isActive ? '#1E40AF' : '#4B5563'}
+                />
+                {isOpen && (
+                  <span className={`text-sm whitespace-nowrap tracking-tight font-semibold ${isActive ? 'text-[#1E40AF]' : 'text-[#1E293B]'}`}>
+                    {label}
+                  </span>
+                )}
+              </>
             )}
           </NavLink>
         ))}

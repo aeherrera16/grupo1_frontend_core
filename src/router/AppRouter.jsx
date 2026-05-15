@@ -16,7 +16,6 @@ import { AccountAvailabilityPage } from '../pages/accounts/AccountAvailabilityPa
 import { TransactionFormPage } from '../pages/transactions/TransactionFormPage';
 import { TransactionHistoryPage } from '../pages/transactions/TransactionHistoryPage';
 import { BranchesPage } from '../pages/BranchesPage';
-import { HolidaysPage } from '../pages/HolidaysPage';
 import { NotificationsPage } from '../pages/NotificationsPage';
 
 // Layout para rutas protegidas
@@ -57,7 +56,6 @@ const router = createBrowserRouter([
       { path: 'transacciones/nueva', element: <TransactionFormPage /> },
       { path: 'transacciones/historial/:accountNumber', element: <TransactionHistoryPage /> },
       { path: 'sucursales', element: <BranchesPage /> },
-      { path: 'feriados', element: <HolidaysPage /> },
       { path: 'notificaciones', element: <NotificationsPage /> },
     ]
   },

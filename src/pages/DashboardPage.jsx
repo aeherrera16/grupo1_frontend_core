@@ -1,48 +1,45 @@
 import { useAuth } from '../hooks/useAuth';
 import { Link } from 'react-router-dom';
+import { Users, Repeat, Building2, UserPlus, Bell, ArrowRight } from 'lucide-react';
+
+const ICON_COLOR = '#4B5563';
+
+const modules = [
+  {
+    title: 'Buscar Clientes',
+    description: 'Búsqueda de clientes por identificación',
+    path: '/clientes',
+    Icon: Users,
+  },
+  {
+    title: 'Nueva Transacción',
+    description: 'Realizar débito, crédito o transferencia',
+    path: '/transacciones/nueva',
+    Icon: Repeat,
+  },
+  {
+    title: 'Gestionar Sucursales',
+    description: 'Ver y crear sucursales',
+    path: '/sucursales',
+    Icon: Building2,
+  },
+  {
+    title: 'Nueva Cuenta',
+    description: 'Crear nueva cuenta de cliente',
+    path: '/cuentas/nueva',
+    Icon: UserPlus,
+  },
+  {
+    title: 'Notificaciones',
+    description: 'Ver tus notificaciones',
+    path: '/notificaciones',
+    Icon: Bell,
+  },
+];
 
 export function DashboardPage() {
   const auth = useAuth() || {};
   const { user = {} } = auth;
-
-  const modules = [
-    {
-      title: 'Buscar Clientes',
-      description: 'Búsqueda de clientes por identificación',
-      path: '/clientes',
-      icon: '👥'
-    },
-    {
-      title: 'Nueva Transacción',
-      description: 'Realizar débito, crédito o transferencia',
-      path: '/transacciones/nueva',
-      icon: '💸'
-    },
-    {
-      title: 'Gestionar Sucursales',
-      description: 'Ver y crear sucursales',
-      path: '/sucursales',
-      icon: '🏢'
-    },
-    {
-      title: 'Nueva Cuenta',
-      description: 'Crear nueva cuenta de cliente',
-      path: '/cuentas/nueva',
-      icon: '🏦'
-    },
-    {
-      title: 'Feriados',
-      description: 'Gestionar calendario de feriados',
-      path: '/feriados',
-      icon: '📅'
-    },
-    {
-      title: 'Notificaciones',
-      description: 'Ver tus notificaciones',
-      path: '/notificaciones',
-      icon: '🔔'
-    }
-  ];
 
   return (
     <div className="space-y-8">
@@ -58,16 +55,23 @@ export function DashboardPage() {
 
       {/* Grid de módulos */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {modules.map((module) => (
-          <Link
-            key={module.path}
-            to={module.path}
-            className="module-card"
-          >
-            <div className="module-card-icon">{module.icon}</div>
-            <h3 className="module-card-title">{module.title}</h3>
-            <p className="module-card-description">{module.description}</p>
-          </Link>
+        {modules.map(({ path, title, description, Icon }) => (
+          <div key={path} className="module-card">
+            <div className="module-card-icon">
+              <Icon size={22} strokeWidth={1.5} color={ICON_COLOR} />
+            </div>
+            <div className="flex-1">
+              <h3 className="module-card-title">{title}</h3>
+              <p className="module-card-description">{description}</p>
+            </div>
+            <Link
+              to={path}
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#1E40AF] hover:text-[#001f3f] transition-colors mt-auto"
+            >
+              Acceder
+              <ArrowRight size={14} strokeWidth={2} />
+            </Link>
+          </div>
         ))}
       </div>
 
@@ -94,11 +98,6 @@ export function DashboardPage() {
         </div>
       </div>
 
-      {/* Alert informativo */}
-      <div className="alert alert-info">
-        <strong>ℹ️ Bienvenido a la Intranet Bancaria</strong><br/>
-        Esta plataforma permite gestionar clientes, cuentas, transacciones y más. Utiliza los módulos del menú lateral para acceder a las diferentes funcionalidades.
-      </div>
     </div>
   );
 }

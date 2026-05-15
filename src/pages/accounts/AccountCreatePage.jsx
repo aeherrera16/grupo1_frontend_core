@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Info, AlertTriangle, Lock } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { createAccount, getAccountsByCustomer } from '../../api/accountApi';
 import { getCustomer } from '../../api/customerApi';
@@ -7,7 +8,6 @@ import { validateCurrency } from '../../helpers/validators';
 import { ACCOUNT_TYPES } from '../../constants/accountTypes';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { CustomerSelector } from '../../components/common/CustomerSelector';
-
 const ACCOUNT_MINIMUMS = { 1: 10, 2: 100, 3: 0 };
 
 function formatCustomerType(type) {
@@ -250,7 +250,7 @@ export const AccountCreatePage = () => {
       {error && (
         <div className="bg-gradient-to-br from-orange-50 to-red-50 border-l-4 border-orange-500 p-4 rounded-lg mb-6">
           <div className="flex items-start gap-3">
-            <span className="text-2xl">⚠️</span>
+            <AlertTriangle size={20} strokeWidth={1.5} color="#ea580c" />
             <div>
               <p className="font-semibold text-gray-900">Error</p>
               <p className="text-gray-700 text-sm mt-1">{error}</p>
@@ -289,7 +289,7 @@ export const AccountCreatePage = () => {
               </div>
               <div>
                 <p className="text-gray-600 text-sm">Tipo</p>
-                <p className="font-semibold">{formatCustomerType(selectedCustomer.type)}</p>
+                <p className="font-semibold">{formatCustomerType(selectedCustomer.type || selectedCustomer.customerType || selectedCustomer.typeEntity || customerSelectorValue?.type)}</p>
               </div>
               <div>
                 <p className="text-gray-600 text-sm">Identificación</p>
@@ -300,13 +300,13 @@ export const AccountCreatePage = () => {
                 <p className="font-semibold">{selectedCustomer.email}</p>
               </div>
               <div>
-                <p className="text-gray-600 text-sm">Estado KYC</p>
+                <p className="text-gray-600 text-sm">Estado</p>
                 <p
                   className={`font-semibold ${
                     kycAprobado ? 'text-green-700' : 'text-red-700'
                   }`}
                 >
-                  {selectedCustomer.status}
+                  {kycAprobado ? 'Habilitado para creación de cuenta' : 'No habilitado para creación de cuenta'}
                 </p>
               </div>
             </div>
@@ -315,7 +315,7 @@ export const AccountCreatePage = () => {
           {!kycAprobado && (
             <div className="bg-red-50 border-l-4 border-red-600 p-5 rounded-lg mb-6">
               <div className="flex items-start gap-3">
-                <span className="text-2xl">🔒</span>
+                <Lock size={20} strokeWidth={1.5} color="#dc2626" />
                 <div>
                   <p className="font-bold text-red-800">KYC no aprobado</p>
                   <p className="text-red-700 text-sm mt-1">
@@ -331,9 +331,10 @@ export const AccountCreatePage = () => {
       )}
 
       {!customerSelectorValue && !customerLoading && (
-        <div className="bg-blue-50 border border-blue-300 p-4 rounded-lg mb-6">
+        <div className="bg-blue-50 border border-blue-300 p-4 rounded-lg mb-6 flex items-center gap-3">
+          <Info size={18} strokeWidth={1.5} color="#1d4ed8" />
           <p className="text-blue-800">
-            👆 Busque y seleccione un cliente arriba para continuar
+            Busque y seleccione un cliente arriba para continuar
           </p>
         </div>
       )}
@@ -348,11 +349,9 @@ export const AccountCreatePage = () => {
             <p className="text-gray-500 text-xs mt-1">
               Tipo: {formatCustomerType(selectedCustomer.type || customerSelectorValue?.type)}
             </p>
-            {selectedCustomer.status && (
-              <p className={`text-xs mt-0.5 ${kycAprobado ? 'text-green-700' : 'text-red-600'}`}>
-                Estado KYC: {selectedCustomer.status}
-              </p>
-            )}
+            <p className={`text-xs mt-0.5 ${kycAprobado ? 'text-green-700' : 'text-red-600'}`}>
+              {kycAprobado ? 'Habilitado para creación de cuenta' : 'No habilitado para creación de cuenta'}
+            </p>
           </div>
 
           <div className="mb-6">

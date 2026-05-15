@@ -1,13 +1,10 @@
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
 export const ProtectedRoute = ({ children }) => {
-  const location = useLocation();
-  const auth = useAuth() || {};
-  const { isAuthenticated = false } = auth;
+  const { isAuthenticated } = useAuth();
 
-  // Evita loop infinito: si ya estamos en /login, no rediriges más
-  if (!isAuthenticated && location.pathname !== '/login') {
+  if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 

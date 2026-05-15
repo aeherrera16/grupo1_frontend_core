@@ -10,7 +10,6 @@ import { CustomerTransferPage } from './pages/CustomerTransferPage';
 import { PagosMasivosPage } from './pages/PagosMasivosPage';
 import { SftpMailboxPage } from './pages/SftpMailboxPage';
 import { LoginPage } from './pages/LoginPage';
-import { HolidaysPage } from './pages/HolidaysPage';
 import { LayoutEmpresas } from './components/LayoutEmpresas';
 import './index.css';
 
@@ -39,14 +38,6 @@ export default function App() {
             element={
               <Protected portal="operador">
                 <CredentialsPage />
-              </Protected>
-            }
-          />
-          <Route
-            path="/operador/feriados"
-            element={
-              <Protected portal="operador">
-                <HolidaysPage />
               </Protected>
             }
           />

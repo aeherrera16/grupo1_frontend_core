@@ -54,7 +54,6 @@ export const menuByPortal = {
     { path: '/operador', label: 'Clientes y cuentas' },
     { path: '/operador/credenciales', label: 'Credenciales web' },
     { path: '/operador/cuentas', label: 'Estados de cuenta' },
-    { path: '/operador/feriados', label: 'Feriados' },
   ],
   empresa: [
     { path: '/empresa/cuentas', label: 'Resumen de cuenta' },
