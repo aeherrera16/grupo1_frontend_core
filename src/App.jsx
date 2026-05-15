@@ -1,3 +1,4 @@
+import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './router/ProtectedRoute';
@@ -30,19 +31,28 @@ import { NotificationsPage } from './pages/NotificationsPage';
 
 import './index.css';
 
-const IntranetLayout = () => (
-  <div className="flex flex-col h-screen bg-gray-50">
-    <Topbar />
-    <div className="flex flex-1 overflow-hidden">
+const IntranetLayout = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);
+
+  return (
+    <div className="h-screen overflow-hidden" style={{ backgroundColor: '#f8f9fa' }}>
+      <Topbar />
       <Sidebar />
-      <main className="flex-1 overflow-auto">
+      <main
+        className="overflow-auto transition-all duration-300"
+        style={{
+          marginTop: '4rem',
+          marginLeft: isSidebarOpen ? '16rem' : '5rem',
+          height: 'calc(100vh - 4rem)',
+        }}
+      >
         <div className="p-8">
           <Outlet />
         </div>
       </main>
     </div>
-  </div>
-);
+  );
+};
 
 export default function App() {
   return (

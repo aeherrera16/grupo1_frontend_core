@@ -5,104 +5,99 @@ export function DashboardPage() {
   const auth = useAuth() || {};
   const { user = {} } = auth;
 
-  const quickAccessLinks = [
+  const modules = [
     {
       title: 'Buscar Clientes',
       description: 'Búsqueda de clientes por identificación',
       path: '/clientes',
-      bg: 'from-blue-50 to-blue-100',
-      border: 'border-blue-200',
-      text: 'text-blue-700'
+      icon: '👥'
     },
     {
       title: 'Nueva Transacción',
       description: 'Realizar débito, crédito o transferencia',
       path: '/transacciones/nueva',
-      bg: 'from-emerald-50 to-emerald-100',
-      border: 'border-emerald-200',
-      text: 'text-emerald-700'
+      icon: '💸'
     },
     {
       title: 'Gestionar Sucursales',
       description: 'Ver y crear sucursales',
       path: '/sucursales',
-      bg: 'from-indigo-50 to-indigo-100',
-      border: 'border-indigo-200',
-      text: 'text-indigo-700'
+      icon: '🏢'
     },
     {
       title: 'Nueva Cuenta',
       description: 'Crear nueva cuenta de cliente',
       path: '/cuentas/nueva',
-      bg: 'from-amber-50 to-amber-100',
-      border: 'border-amber-200',
-      text: 'text-amber-700'
+      icon: '🏦'
     },
     {
       title: 'Feriados',
       description: 'Gestionar calendario de feriados',
       path: '/feriados',
-      bg: 'from-orange-50 to-orange-100',
-      border: 'border-orange-200',
-      text: 'text-orange-700'
+      icon: '📅'
     },
     {
       title: 'Notificaciones',
       description: 'Ver tus notificaciones',
       path: '/notificaciones',
-      bg: 'from-rose-50 to-rose-100',
-      border: 'border-rose-200',
-      text: 'text-rose-700'
+      icon: '🔔'
     }
   ];
 
   return (
     <div className="space-y-8">
-      {/* Encabezado */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">
+      {/* Page Header */}
+      <div className="page-header">
+        <h1 className="page-title">
           Bienvenido, {user?.name || 'Operario'}
         </h1>
-        <p className="text-gray-600 mt-1">
+        <p className="page-description">
           Panel de control de la Intranet Banquito
         </p>
       </div>
 
-      {/* Grid de accesos rápidos */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {quickAccessLinks.map((link) => (
+      {/* Grid de módulos */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {modules.map((module) => (
           <Link
-            key={link.path}
-            to={link.path}
-            className={`group bg-gradient-to-br ${link.bg} border-2 ${link.border} rounded-xl p-6 cursor-pointer transition duration-200 hover:shadow-md hover:scale-105`}
+            key={module.path}
+            to={module.path}
+            className="module-card"
           >
-            <h3 className={`text-lg font-semibold ${link.text} mb-2`}>
-              {link.title}
-            </h3>
-            <p className="text-gray-600 text-sm">
-              {link.description}
-            </p>
+            <div className="module-card-icon">{module.icon}</div>
+            <h3 className="module-card-title">{module.title}</h3>
+            <p className="module-card-description">{module.description}</p>
           </Link>
         ))}
       </div>
 
-      {/* Información del Usuario */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h2 className="text-lg font-bold text-gray-900 mb-6">Información del Usuario</h2>
+      {/* Información del Usuario - Stats */}
+      <div className="dashboard-card">
+        <h2 className="text-xl font-bold text-gray-900 mb-6" style={{ color: '#001f3f' }}>
+          Información del Usuario
+        </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200">
-            <p className="text-gray-600 text-sm font-medium">Usuario</p>
-            <p className="text-lg font-semibold text-gray-900 mt-2">{user?.username || '-'}</p>
+          <div className="stat-box">
+            <p className="stat-box-label">Usuario</p>
+            <p className="stat-box-value">{user?.username || '-'}</p>
           </div>
-          <div className="p-4 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-lg border border-indigo-200">
-            <p className="text-gray-600 text-sm font-medium">Rol</p>
-            <p className="text-lg font-semibold text-gray-900 mt-2">{user?.role || 'OPERARIO'}</p>
+          <div className="stat-box">
+            <p className="stat-box-label">Rol</p>
+            <p className="stat-box-value">{user?.role || 'OPERARIO'}</p>
           </div>
-          <div className="p-4 bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-lg border border-emerald-200">
-            <p className="text-gray-600 text-sm font-medium">Estado</p>
-            <p className="text-lg font-semibold text-gray-900 mt-2">{user?.status || 'ACTIVO'}</p>
+          <div className="stat-box">
+            <p className="stat-box-label">Estado</p>
+            <p className="stat-box-value" style={{ color: '#10b981' }}>
+              {user?.status || 'ACTIVO'}
+            </p>
           </div>
         </div>
+      </div>
+
+      {/* Alert informativo */}
+      <div className="alert alert-info">
+        <strong>ℹ️ Bienvenido a la Intranet Bancaria</strong><br/>
+        Esta plataforma permite gestionar clientes, cuentas, transacciones y más. Utiliza los módulos del menú lateral para acceder a las diferentes funcionalidades.
       </div>
     </div>
   );

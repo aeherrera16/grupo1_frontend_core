@@ -7,18 +7,35 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Manrope', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
       },
       colors: {
         banker: {
-          navy: '#102f3f',
-          blue: '#1f6173',
-          gold: '#b98a3e',
-          light: '#f4f7fb',
-          dark: '#1f2933',
-          gray: '#687684',
+          navy: '#001f3f',
+          'navy-light': '#003d66',
+          'navy-lighter': '#0052a3',
+          gray: {
+            light: '#f8f9fa',
+            lighter: '#e9ecef',
+            medium: '#6c757d',
+            dark: '#495057',
+          },
+          white: '#ffffff',
+          success: '#10b981',
+          warning: '#f59e0b',
+          danger: '#ef4444',
         }
-      }
+      },
+      boxShadow: {
+        sm: '0 1px 2px rgba(0, 0, 0, 0.05)',
+        md: '0 4px 6px rgba(0, 0, 0, 0.07)',
+        lg: '0 10px 15px rgba(0, 0, 0, 0.1)',
+        xl: '0 20px 25px rgba(0, 0, 0, 0.12)',
+      },
+      borderRadius: {
+        DEFAULT: '6px',
+      },
     },
   },
   plugins: [],
