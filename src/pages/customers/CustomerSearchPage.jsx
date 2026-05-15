@@ -170,7 +170,7 @@ export const CustomerSearchPage = () => {
                 </div>
                 <div>
                   <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Teléfono</p>
-                  <p className="text-sm font-semibold text-slate-800 mt-0.5">{searchResult.phone}</p>
+                  <p className="text-sm font-semibold text-slate-800 mt-0.5">{searchResult.mobilePhone}</p>
                 </div>
               </div>
 

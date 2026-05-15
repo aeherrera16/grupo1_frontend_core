@@ -66,6 +66,7 @@ export const CustomerCreatePage = () => {
   const [fieldErrors, setFieldErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [isDirty, setIsDirty] = useState(false);
+  const [subtypesList, setSubtypesList] = useState([]);
 
   const [formData, setFormData] = useState({
     identificationType: 'CEDULA',
@@ -92,14 +93,23 @@ export const CustomerCreatePage = () => {
   }, []);
 
   useEffect(() => {
-    setSubtypeId(null);
+    if (!customerType) return;
+    
+    setSubtypeId(''); 
+    
     getCustomerSubtypesByType(customerType)
       .then((res) => {
-        const list = res.data;
-        const first = Array.isArray(list) ? list[0] : list;
-        if (first?.id) setSubtypeId(first.id);
+        const list = res.data || [];
+        setSubtypesList(list); 
+        
+        if (list.length > 0) {
+          setSubtypeId(list[0].id);
+        }
       })
-      .catch(() => {});
+      .catch((err) => {
+        console.error("Error cargando subtipos de cliente:", err);
+        setSubtypesList([]);
+      });
   }, [customerType]);
 
   const handleInputChange = (e) => {
@@ -211,8 +221,8 @@ export const CustomerCreatePage = () => {
         payload.lastName = formData.lastName;
         payload.birthDate = formData.birthDate;
       } else {
-        payload.businessName = formData.businessName;
-        payload.incorporationDate = formData.incorporationDate;
+        payload.legalName = formData.businessName;
+        payload.constitutionDate = formData.incorporationDate;
         payload.legalRepresentativeId = selectedRepresentative.id;
       }
 
@@ -351,9 +361,11 @@ export const CustomerCreatePage = () => {
         )}
 
         <form onSubmit={handleSubmit} noValidate>
-          {/* ── Tipo de Cliente ── */}
+          {/* ── Tipo de Cliente y Subtipo ── */}
           <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 mb-4">
             <p className="text-xs font-bold uppercase tracking-wide text-slate-500 mb-3">Tipo de Cliente</p>
+            
+            {/* Botones de Tipo */}
             <div className="flex gap-3">
               {['NATURAL', 'JURIDICO'].map((type) => (
                 <button
@@ -384,6 +396,28 @@ export const CustomerCreatePage = () => {
                 </button>
               ))}
             </div>
+
+            {/* ── AQUÍ SE AGREGA EL COMBO DE SUBTIPO ── */}
+            <div className="mt-5 border-t border-slate-100 pt-5">
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                Subtipo de Cliente<Required />
+              </label>
+              <select
+                value={subtypeId}
+                onChange={(e) => setSubtypeId(e.target.value)}
+                required
+                className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed"
+                disabled={subtypesList.length === 0}
+              >
+                <option value="" disabled>Seleccione un subtipo...</option>
+                {subtypesList.map((subtype) => (
+                  <option key={subtype.id} value={subtype.id}>
+                    {subtype.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
           </div>
 
           {/* ── Identificación y Contacto ── */}

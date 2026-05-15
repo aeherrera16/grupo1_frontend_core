@@ -56,7 +56,8 @@ export const BranchesPage = () => {
       };
       await createBranch(payload);
       await fetchBranches();
-      setModalOpen(false);
+      setShowModal(false);
+      setFormData({ code: '', name: '', city: '' });
     } catch (err) {
       setError(err.response?.data?.message || 'Error al crear sucursal');
     } finally {
@@ -99,11 +100,13 @@ export const BranchesPage = () => {
               <tbody>
                 {branches.map((branch) => (
                   <tr key={branch.id} className="border-b hover:bg-gray-50">
-                    <td className="p-3 font-semibold">{branch.code}</td>
+                    <td className="p-3 font-semibold">{branch.branchCode}</td>
                     <td className="p-3">{branch.name}</td>
                     <td className="p-3">{branch.city}</td>
                     <td className="p-3 text-gray-600">
-                      {new Date(branch.createdAt).toLocaleDateString('es-ES')}
+                      {branch.creationDate 
+                        ? new Date(branch.creationDate).toLocaleDateString('es-ES') 
+                        : 'N/A'}
                     </td>
                   </tr>
                 ))}
