@@ -16,6 +16,5 @@ export const createCustomer = (data) =>
 export const updateCustomer = (id, data) =>
   axiosInstance.patch(ENDPOINTS.CUSTOMERS.UPDATE(id), data);
 
-// Nota: El endpoint de subtypes no está implementado en el backend aún
-// export const getCustomerSubtypes = () =>
-//   axiosInstance.get(ENDPOINTS.CUSTOMERS.SUBTYPES);
+export const getCustomerSubtypesByType = (customerType) =>
+  axiosInstance.get(`/customer-subtypes/type/${customerType}`);

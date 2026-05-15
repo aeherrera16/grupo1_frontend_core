@@ -99,7 +99,7 @@ export const AccountDetailPage = () => {
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h1 className="text-3xl font-bold mb-2">{accountNumber}</h1>
-                <p className="text-gray-600">{account.customerName}</p>
+                <p className="text-gray-600">{account.customerFullName}</p>
               </div>
               <StatusBadge status={account.status} />
             </div>
@@ -107,15 +107,15 @@ export const AccountDetailPage = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <div>
                 <p className="text-gray-600 text-sm">Tipo de Cuenta</p>
-                <p className="font-semibold">{account.accountType}</p>
+                <p className="font-semibold">{account.accountSubtypeDescription}</p>
               </div>
               <div>
                 <p className="text-gray-600 text-sm">Sucursal</p>
-                <p className="font-semibold">{account.branch}</p>
+                <p className="font-semibold">{account.branchName}</p>
               </div>
               <div>
                 <p className="text-gray-600 text-sm">Saldo Contable</p>
-                <p className="font-semibold text-lg">{formatCurrency(account.accountBalance)}</p>
+                <p className="font-semibold text-lg">{formatCurrency(account.accountingBalance)}</p>
               </div>
               <div>
                 <p className="text-gray-600 text-sm">Saldo Disponible</p>
@@ -187,10 +187,10 @@ export const AccountDetailPage = () => {
                   <tbody>
                     {transactions.map((tx, idx) => (
                       <tr key={idx} className="border-b hover:bg-gray-50">
-                        <td className="p-3">{formatDateTime(tx.date)}</td>
+                        <td className="p-3">{formatDateTime(tx.transactionDate)}</td>
                         <td className="p-3">
-                          <span className={tx.type === 'DEBITO' ? 'text-red-600' : 'text-green-600'}>
-                            {tx.type}
+                          <span className={tx.movementType === 'DEBITO' ? 'text-red-600' : 'text-green-600'}>
+                            {tx.movementType}
                           </span>
                         </td>
                         <td className="p-3">{formatCurrency(tx.amount)}</td>
@@ -198,7 +198,7 @@ export const AccountDetailPage = () => {
                         <td className="p-3">
                           <StatusBadge status={tx.status} />
                         </td>
-                        <td className="p-3 text-gray-600">{tx.description}</td>
+                        <td className="p-3 text-gray-600">{tx.message || tx.description}</td>
                       </tr>
                     ))}
                   </tbody>

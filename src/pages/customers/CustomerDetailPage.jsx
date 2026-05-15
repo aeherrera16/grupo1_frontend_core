@@ -55,13 +55,20 @@ export const CustomerDetailPage = () => {
         <>
           <div className="bg-white p-6 rounded-lg shadow mb-6">
             <h1 className="text-3xl font-bold mb-4">
-              {customer.name || customer.businessName}
+              {customer.fullName ||
+                (customer.firstName ? `${customer.firstName} ${customer.lastName || ''}`.trim() : null) ||
+                customer.businessName ||
+                customer.name}
             </h1>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <p className="text-gray-600 text-sm">Tipo de Cliente</p>
-                <p className="font-semibold">{customer.type}</p>
+                <p className="font-semibold">
+                  {customer.customerType === 'NATURAL' || customer.type === 'NATURAL' ? 'Persona Natural' :
+                   customer.customerType === 'JURIDICO' || customer.type === 'JURIDICO' ? 'Persona Jurídica' :
+                   customer.customerType || customer.type}
+                </p>
               </div>
               <div>
                 <p className="text-gray-600 text-sm">Identificación</p>
@@ -114,8 +121,8 @@ export const CustomerDetailPage = () => {
                     {accounts.map((account) => (
                       <tr key={account.accountNumber} className="border-b hover:bg-gray-50">
                         <td className="p-3 font-semibold">{account.accountNumber}</td>
-                        <td className="p-3">{account.accountType}</td>
-                        <td className="p-3">{account.branch}</td>
+                        <td className="p-3">{account.accountSubtypeDescription}</td>
+                        <td className="p-3">{account.branchName}</td>
                         <td className="p-3">{formatCurrency(account.availableBalance)}</td>
                         <td className="p-3">
                           <StatusBadge status={account.status} />

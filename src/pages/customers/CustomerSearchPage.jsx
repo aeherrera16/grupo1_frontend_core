@@ -140,17 +140,24 @@ export const CustomerSearchPage = () => {
                 <div>
                   <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Nombre</p>
                   <p className="text-sm font-semibold text-slate-800 mt-0.5">
-                    {searchResult.name || searchResult.businessName}
+                    {searchResult.fullName ||
+                      (searchResult.firstName ? `${searchResult.firstName} ${searchResult.lastName || ''}`.trim() : null) ||
+                      searchResult.businessName ||
+                      searchResult.name}
                   </p>
                 </div>
                 <div>
                   <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Tipo de Cliente</p>
-                  <p className="text-sm font-semibold text-slate-800 mt-0.5">{searchResult.type}</p>
+                  <p className="text-sm font-semibold text-slate-800 mt-0.5">
+                    {searchResult.customerType === 'NATURAL' || searchResult.type === 'NATURAL' ? 'Persona Natural' :
+                     searchResult.customerType === 'JURIDICO' || searchResult.type === 'JURIDICO' ? 'Persona Jurídica' :
+                     searchResult.customerType || searchResult.type}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Estado KYC</p>
                   <span className={`inline-block mt-0.5 px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                    searchResult.status === 'APROBADO'
+                    searchResult.status === 'APROBADO' || searchResult.status === 'ACTIVO'
                       ? 'bg-green-100 text-green-700'
                       : 'bg-red-100 text-red-700'
                   }`}>
@@ -176,13 +183,13 @@ export const CustomerSearchPage = () => {
                 </button>
                 <button
                   onClick={() => navigate(`/cuentas/nueva?customerId=${searchResult.id}`)}
-                  disabled={searchResult.status !== 'APROBADO'}
+                  disabled={searchResult.status !== 'APROBADO' && searchResult.status !== 'ACTIVO'}
                   className={`flex-1 sm:flex-none sm:w-40 px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors text-center ${
-                    searchResult.status === 'APROBADO'
+                    searchResult.status === 'APROBADO' || searchResult.status === 'ACTIVO'
                       ? 'bg-green-600 text-white hover:bg-green-700'
                       : 'bg-slate-200 text-slate-400 cursor-not-allowed'
                   }`}
-                  title={searchResult.status !== 'APROBADO' ? 'El cliente necesita KYC aprobado para crear cuenta' : ''}
+                  title={searchResult.status !== 'APROBADO' && searchResult.status !== 'ACTIVO' ? 'El cliente necesita KYC aprobado para crear cuenta' : ''}
                 >
                   Nueva Cuenta
                 </button>

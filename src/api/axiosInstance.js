@@ -9,6 +9,21 @@ const instance = axios.create({
   }
 });
 
+instance.interceptors.request.use((config) => {
+  try {
+    const stored = localStorage.getItem('banquito_auth');
+    if (stored) {
+      const auth = JSON.parse(stored);
+      if (auth?.user?.id) {
+        config.headers['X-Core-User-Id'] = String(auth.user.id);
+      }
+    }
+  } catch {
+    // ignore
+  }
+  return config;
+});
+
 instance.interceptors.response.use(
   response => response,
   error => {

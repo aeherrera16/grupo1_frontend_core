@@ -29,7 +29,7 @@ export const AccountCreatePage = () => {
 
   const [formData, setFormData] = useState({
     customerId: '',
-    accountSubtypeId: 1,
+    accountSubtypeId: '1',
     branchId: '',
     initialBalance: '',
     isFavorite: false
@@ -137,7 +137,8 @@ export const AccountCreatePage = () => {
     }
 
     // Validación KYC
-    if (selectedCustomer.status !== 'APROBADO') {
+    const kycAprobado = selectedCustomer.status === 'APROBADO' || selectedCustomer.status === 'ACTIVO';
+    if (!kycAprobado) {
       setError('El cliente debe tener estado KYC aprobado para crear una cuenta');
       return false;
     }
@@ -288,7 +289,7 @@ export const AccountCreatePage = () => {
       {selectedCustomer && (
         <>
           <div className={`border p-6 rounded-lg shadow mb-6 ${
-            selectedCustomer.status === 'APROBADO'
+            selectedCustomer.status === 'APROBADO' || selectedCustomer.status === 'ACTIVO'
               ? 'bg-green-50 border-green-200'
               : 'bg-red-50 border-red-200'
           }`}>
@@ -296,7 +297,12 @@ export const AccountCreatePage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
                 <p className="text-gray-600 text-sm">Nombre</p>
-                <p className="font-semibold">{selectedCustomer.name || selectedCustomer.businessName}</p>
+                <p className="font-semibold">
+                  {selectedCustomer.fullName ||
+                    (selectedCustomer.firstName ? `${selectedCustomer.firstName} ${selectedCustomer.lastName || ''}`.trim() : null) ||
+                    selectedCustomer.businessName ||
+                    selectedCustomer.name}
+                </p>
               </div>
               <div>
                 <p className="text-gray-600 text-sm">Tipo</p>
@@ -335,7 +341,7 @@ export const AccountCreatePage = () => {
             </button>
           </div>
 
-          {selectedCustomer.status !== 'APROBADO' && (
+          {selectedCustomer.status !== 'APROBADO' && selectedCustomer.status !== 'ACTIVO' && (
             <div className="bg-red-50 border-l-4 border-red-600 p-5 rounded-lg mb-6">
               <div className="flex items-start gap-3">
                 <span className="text-2xl">🔒</span>
@@ -358,11 +364,16 @@ export const AccountCreatePage = () => {
         </div>
       )}
 
-      {selectedCustomer && selectedCustomer.status === 'APROBADO' && (
+      {selectedCustomer && (selectedCustomer.status === 'APROBADO' || selectedCustomer.status === 'ACTIVO') && (
         <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow">
           {/* Cliente ya seleccionado */}
           <div className="mb-6 p-3 bg-blue-50 border border-blue-200 rounded">
-            <p className="text-sm text-gray-600">Cliente seleccionado: <span className="font-semibold">{selectedCustomer.name || selectedCustomer.businessName}</span></p>
+            <p className="text-sm text-gray-600">Cliente seleccionado: <span className="font-semibold">
+              {selectedCustomer.fullName ||
+                (selectedCustomer.firstName ? `${selectedCustomer.firstName} ${selectedCustomer.lastName || ''}`.trim() : null) ||
+                selectedCustomer.businessName ||
+                selectedCustomer.name}
+            </span></p>
           </div>
 
           <div className="mb-6">

@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Navigate, Outlet } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './router/ProtectedRoute';
 import Sidebar from './components/layout/Sidebar';
@@ -53,49 +53,58 @@ const IntranetLayout = () => {
   );
 };
 
+// createBrowserRouter habilita el data router, requerido para useBlocker y usePrompt
+const router = createBrowserRouter(
+  [
+    {
+      path: '/login',
+      element: <LoginPage />,
+    },
+    {
+      path: '/',
+      element: (
+        <ProtectedRoute>
+          <IntranetLayout />
+        </ProtectedRoute>
+      ),
+      children: [
+        { index: true, element: <Navigate to="dashboard" replace /> },
+        { path: 'dashboard', element: <DashboardPage /> },
+
+        // Clientes — rutas estáticas antes que dinámicas
+        { path: 'clientes', element: <CustomerSearchPage /> },
+        { path: 'clientes/nuevo', element: <CustomerCreatePage /> },
+        { path: 'clientes/:id', element: <CustomerDetailPage /> },
+
+        // Cuentas
+        { path: 'cuentas/nueva', element: <AccountCreatePage /> },
+        { path: 'cuentas/:accountNumber', element: <AccountDetailPage /> },
+
+        // Transacciones
+        { path: 'transacciones/nueva', element: <TransactionFormPage /> },
+        { path: 'transacciones/historial/:accountNumber', element: <TransactionHistoryPage /> },
+
+        // Secundarios
+        { path: 'sucursales', element: <BranchesPage /> },
+        { path: 'notificaciones', element: <NotificationsPage /> },
+      ],
+    },
+    {
+      path: '*',
+      element: <Navigate to="/" replace />,
+    },
+  ],
+  {
+    future: {
+      v7_relativeSplatPath: true,
+    },
+  },
+);
+
 export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <Routes>
-          {/* Ruta pública de login */}
-          <Route path="/login" element={<LoginPage />} />
-
-          {/* Rutas protegidas de intranet */}
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <IntranetLayout />
-              </ProtectedRoute>
-            }
-          >
-            {/* Dashboard */}
-            <Route path="dashboard" element={<DashboardPage />} />
-            <Route path="" element={<Navigate to="dashboard" replace />} />
-
-            {/* Módulo Clientes */}
-            <Route path="clientes" element={<CustomerSearchPage />} />
-            <Route path="clientes/:id" element={<CustomerDetailPage />} />
-            <Route path="clientes/nuevo" element={<CustomerCreatePage />} />
-
-            {/* Módulo Cuentas */}
-            <Route path="cuentas/:accountNumber" element={<AccountDetailPage />} />
-            <Route path="cuentas/nueva" element={<AccountCreatePage />} />
-
-            {/* Módulo Transacciones */}
-            <Route path="transacciones/nueva" element={<TransactionFormPage />} />
-            <Route path="transacciones/historial/:accountNumber" element={<TransactionHistoryPage />} />
-
-            {/* Módulos Secundarios */}
-            <Route path="sucursales" element={<BranchesPage />} />
-<Route path="notificaciones" element={<NotificationsPage />} />
-          </Route>
-
-          {/* 404 */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </BrowserRouter>
+      <RouterProvider router={router} future={{ v7_startTransition: true }} />
     </AuthProvider>
   );
 }

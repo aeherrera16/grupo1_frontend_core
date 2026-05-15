@@ -35,13 +35,14 @@ export function AuthProvider({ children }) {
   const login = async (username, password) => {
     try {
       const res = await loginStaff(username, password);
+      const data = res.data;
 
       const userData = {
-        id: res.coreUserId,
-        name: res.fullName,
-        username: res.username,
-        role: res.role,
-        status: typeof res.status === 'string' ? res.status : res.status?.toString() || 'ACTIVO',
+        id: data.coreUserId,
+        name: data.fullName,
+        username: data.username,
+        role: data.role,
+        status: typeof data.status === 'string' ? data.status : data.status?.toString() || 'ACTIVO',
       };
 
       const newAuth = {

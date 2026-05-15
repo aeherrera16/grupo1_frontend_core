@@ -19,8 +19,9 @@ export const validateIdentification = (type, number) => {
 
   switch (type) {
     case 'CEDULA':
+      return /^\d{10}$/.test(number);
     case 'RUC':
-      return /^\d{10,13}$/.test(number);
+      return /^\d{13}$/.test(number);
     case 'PASAPORTE':
       return /^[A-Z0-9]{6,10}$/.test(number);
     default:

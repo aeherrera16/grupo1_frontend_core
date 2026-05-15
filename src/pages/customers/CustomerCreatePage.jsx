@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useBlocker } from 'react-router-dom';
-import { createCustomer } from '../../api/customerApi';
+import { createCustomer, getCustomerSubtypesByType } from '../../api/customerApi';
 import { getAllBranches } from '../../api/branchApi';
 import { validateEmail, validatePhone, validateIdentification } from '../../helpers/validators';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
@@ -11,7 +11,10 @@ const validateField = (name, value, idType) => {
   switch (name) {
     case 'identificationNumber':
       if (!value) return 'Requerido';
-      if (!validateIdentification(idType, value)) return 'Número inválido para el tipo seleccionado';
+      if (!validateIdentification(idType, value)) {
+        if (idType === 'RUC') return 'Para persona jurídica el RUC debe tener 13 dígitos';
+        return 'Número inválido para el tipo seleccionado';
+      }
       return '';
     case 'email':
       if (!value) return 'Requerido';
@@ -50,6 +53,7 @@ export const CustomerCreatePage = () => {
   const navigate = useNavigate();
   const [customerType, setCustomerType] = useState('NATURAL');
   const [branches, setBranches] = useState([]);
+  const [subtypeId, setSubtypeId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState('');
@@ -84,6 +88,17 @@ export const CustomerCreatePage = () => {
       .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    setSubtypeId(null);
+    getCustomerSubtypesByType(customerType)
+      .then((res) => {
+        const list = res.data;
+        const first = Array.isArray(list) ? list[0] : list;
+        if (first?.id) setSubtypeId(first.id);
+      })
+      .catch(() => {});
+  }, [customerType]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -110,6 +125,11 @@ export const CustomerCreatePage = () => {
     setSelectedRepresentative(null);
     setFieldErrors({});
     setTouched({});
+    setFormData(prev => ({
+      ...prev,
+      identificationType: newType === 'JURIDICO' ? 'RUC' : 'CEDULA',
+      identificationNumber: '',
+    }));
   };
 
   const handleSelectRepresentative = (person) => {
@@ -166,8 +186,16 @@ export const CustomerCreatePage = () => {
 
     setSubmitting(true);
     try {
+      console.log('🔍 subtypeId al submit:', subtypeId);
+      if (!subtypeId) {
+        setServerError('No se pudo obtener el subtipo de cliente. Intente recargar la página.');
+        setSubmitting(false);
+        return;
+      }
+
       const payload = {
         type: customerType,
+        subtypeId,
         identificationType: formData.identificationType,
         identification: formData.identificationNumber,
         email: formData.email,
@@ -186,6 +214,7 @@ export const CustomerCreatePage = () => {
         payload.legalRepresentativeId = selectedRepresentative.id;
       }
 
+      console.log('📦 payload enviado:', JSON.stringify(payload));
       const response = await createCustomer(payload);
       setIsDirty(false);
       setSuccess(true);
@@ -366,16 +395,26 @@ export const CustomerCreatePage = () => {
                 <label className="block text-sm font-semibold text-slate-700 mb-1.5">
                   Tipo de Identificación
                 </label>
-                <select
-                  name="identificationType"
-                  value={formData.identificationType}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                >
-                  <option value="CEDULA">Cédula</option>
-                  <option value="RUC">RUC</option>
-                  <option value="PASAPORTE">Pasaporte</option>
-                </select>
+                {customerType === 'JURIDICO' ? (
+                  <div className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 text-slate-600 flex items-center gap-2 cursor-not-allowed select-none">
+                    <svg className="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    RUC
+                    <span className="ml-auto text-xs text-slate-400 font-normal">requerido para empresa</span>
+                  </div>
+                ) : (
+                  <select
+                    name="identificationType"
+                    value={formData.identificationType}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+                  >
+                    <option value="CEDULA">Cédula</option>
+                    <option value="RUC">RUC</option>
+                    <option value="PASAPORTE">Pasaporte</option>
+                  </select>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-1.5">

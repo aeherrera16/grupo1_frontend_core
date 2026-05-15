@@ -37,6 +37,7 @@ export const ENDPOINTS = {
     SEARCH: (type, identification) => `/customers/identification/${type}/${identification}`,
     CREATE: '/customers',
     UPDATE: (id) => `/customers/${id}`,
+    SUBTYPES: '/customers/subtypes',
   },
 
   // Cuentas

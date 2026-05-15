@@ -39,11 +39,15 @@ export const CustomerListPage = () => {
   // Filtrar y buscar en el cliente
   const filteredCustomers = useMemo(() => {
     return customers.filter(customer => {
-      const typeMatch = filterType === 'ALL' || customer.type === filterType;
+      const customerTypeVal = customer.customerType || customer.type;
+      const typeMatch = filterType === 'ALL' || customerTypeVal === filterType;
+      const fullName = customer.fullName ||
+        (customer.firstName ? `${customer.firstName} ${customer.lastName || ''}`.trim() : '') ||
+        customer.businessName ||
+        customer.name || '';
       const searchMatch =
         !searchTerm ||
-        (customer.name && customer.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (customer.businessName && customer.businessName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (customer.identification && customer.identification.includes(searchTerm));
       return typeMatch && searchMatch;
     });
@@ -120,14 +124,19 @@ export const CustomerListPage = () => {
                 {filteredCustomers.map((customer) => (
                   <tr key={customer.id} className="border-b hover:bg-gray-50">
                     <td className="p-3 font-semibold">{customer.identification}</td>
-                    <td className="p-3">{customer.name || customer.businessName}</td>
+                    <td className="p-3">
+                      {customer.fullName ||
+                        (customer.firstName ? `${customer.firstName} ${customer.lastName || ''}`.trim() : null) ||
+                        customer.businessName ||
+                        customer.name}
+                    </td>
                     <td className="p-3">
                       <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                        customer.type === 'NATURAL'
+                        (customer.customerType || customer.type) === 'NATURAL'
                           ? 'bg-blue-100 text-blue-800'
                           : 'bg-green-100 text-green-800'
                       }`}>
-                        {customer.type === 'NATURAL' ? 'Persona Natural' : 'Empresa'}
+                        {(customer.customerType || customer.type) === 'NATURAL' ? 'Persona Natural' : 'Empresa'}
                       </span>
                     </td>
                     <td className="p-3 text-gray-600">{customer.email}</td>
