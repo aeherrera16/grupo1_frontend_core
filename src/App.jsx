@@ -26,7 +26,6 @@ import { TransactionHistoryPage } from './pages/transactions/TransactionHistoryP
 
 // Pages - Módulos Secundarios
 import { BranchesPage } from './pages/BranchesPage';
-import { HolidaysPage } from './pages/HolidaysPage';
 import { NotificationsPage } from './pages/NotificationsPage';
 
 import './index.css';
@@ -37,12 +36,12 @@ const IntranetLayout = () => {
   return (
     <div className="h-screen overflow-hidden" style={{ backgroundColor: '#f8f9fa' }}>
       <Topbar />
-      <Sidebar />
+      <Sidebar isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen((v) => !v)} />
       <main
         className="overflow-auto transition-all duration-300"
         style={{
           marginTop: '4rem',
-          marginLeft: isSidebarOpen ? '16rem' : '5rem',
+          marginLeft: isSidebarOpen ? '14rem' : '3.5rem',
           height: 'calc(100vh - 4rem)',
         }}
       >
@@ -90,8 +89,7 @@ export default function App() {
 
             {/* Módulos Secundarios */}
             <Route path="sucursales" element={<BranchesPage />} />
-            <Route path="feriados" element={<HolidaysPage />} />
-            <Route path="notificaciones" element={<NotificationsPage />} />
+<Route path="notificaciones" element={<NotificationsPage />} />
           </Route>
 
           {/* 404 */}

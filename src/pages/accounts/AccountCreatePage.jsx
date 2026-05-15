@@ -10,6 +10,7 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner';
 const ACCOUNT_MINIMUMS = { 1: 10, 2: 100, 3: 0 };
 
 export const AccountCreatePage = () => {
+  console.log('🔥 AccountCreatePage cargado con cambios nuevos v2');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const prefilledCustomerId = searchParams.get('customerId');

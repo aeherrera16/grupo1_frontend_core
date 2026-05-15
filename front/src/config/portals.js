@@ -1,4 +1,4 @@
-export const portals = {
+  export const portals = {
   operador: {
     label: 'Operador',
     description: 'Gestión de clientes, cuentas y credenciales, sin movimientos de caja.',

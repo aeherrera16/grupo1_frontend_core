@@ -48,113 +48,147 @@ export const CustomerSearchPage = () => {
     }
   };
 
-  return (
-    <div className="max-w-2xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Búsqueda de Clientes</h1>
+  const hasSearched = searchResult !== null || error !== '';
 
-      <form onSubmit={handleSearch} className="bg-white p-6 rounded-lg shadow mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div>
-            <label className="block text-sm font-medium mb-2">Tipo de Identificación</label>
-            <select
-              value={identificationType}
-              onChange={(e) => setIdentificationType(e.target.value)}
-              className="w-full p-2 border rounded"
-            >
-              <option value="CEDULA">Cédula</option>
-              <option value="RUC">RUC</option>
-              <option value="PASAPORTE">Pasaporte</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-2">Número</label>
-            <input
-              type="text"
-              value={identificationNumber}
-              onChange={(e) => setIdentificationNumber(e.target.value)}
-              placeholder="Ingrese el número"
-              className="w-full p-2 border rounded"
-            />
-          </div>
+  return (
+    <div className="w-full">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800">Búsqueda de Clientes</h1>
+          <p className="text-sm text-slate-500 mt-0.5">Localice un cliente por tipo y número de identificación</p>
         </div>
         <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 disabled:bg-gray-400"
+          onClick={() => navigate('/clientes/nuevo')}
+          className="bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-800 font-medium text-sm transition-colors"
         >
-          {loading ? 'Buscando...' : 'Buscar'}
+          + Nuevo Cliente
         </button>
-      </form>
+      </div>
 
-      {error && (
-        <div className="bg-gradient-to-br from-orange-50 to-red-50 border-l-4 border-orange-500 p-4 rounded-lg mb-6">
-          <div className="flex items-start gap-3">
-            <span className="text-2xl">⚠️</span>
-            <div>
-              <p className="font-semibold text-gray-900">Búsqueda sin resultados</p>
-              <p className="text-gray-700 text-sm mt-1">{error}</p>
+      {/* Search Card */}
+      <div className="bg-white rounded-xl shadow-md border border-slate-100 p-8 mb-6">
+        <form onSubmit={handleSearch}>
+          <div className="flex flex-col md:flex-row gap-4 items-end">
+            {/* Tipo de Identificación */}
+            <div className="flex-1">
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                Tipo de Identificación
+              </label>
+              <select
+                value={identificationType}
+                onChange={(e) => setIdentificationType(e.target.value)}
+                className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              >
+                <option value="CEDULA">Cédula</option>
+                <option value="RUC">RUC</option>
+                <option value="PASAPORTE">Pasaporte</option>
+              </select>
+            </div>
+
+            {/* Número */}
+            <div className="flex-1">
+              <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                Número de Identificación
+              </label>
+              <input
+                type="text"
+                value={identificationNumber}
+                onChange={(e) => setIdentificationNumber(e.target.value)}
+                placeholder="Ej. 1234567890"
+                className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              />
+            </div>
+
+            {/* Botón Buscar */}
+            <div className="flex-1 md:flex-none md:w-40">
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full px-6 py-2.5 bg-blue-700 text-white text-sm font-semibold rounded-lg hover:bg-blue-800 disabled:bg-slate-400 disabled:cursor-not-allowed transition-colors"
+              >
+                {loading ? 'Buscando...' : 'Buscar'}
+              </button>
             </div>
           </div>
-        </div>
-      )}
+        </form>
+      </div>
 
-      {loading && <LoadingSpinner fullPage={false} size="lg" />}
+      {/* Área de resultados — solo visible tras una búsqueda */}
+      {hasSearched && (
+        <div>
+          {error && (
+            <div className="bg-orange-50 border border-orange-200 rounded-xl p-5 mb-4 flex items-start gap-3">
+              <svg className="w-5 h-5 text-orange-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+              </svg>
+              <div>
+                <p className="text-sm font-semibold text-orange-800">Sin resultados</p>
+                <p className="text-sm text-orange-700 mt-0.5">{error}</p>
+              </div>
+            </div>
+          )}
 
-      {searchResult && (
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-bold mb-4">Resultado de la búsqueda</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div>
-              <p className="text-gray-600">Nombre</p>
-              <p className="font-semibold">{searchResult.name || searchResult.businessName}</p>
+          {loading && <LoadingSpinner fullPage={false} size="lg" />}
+
+          {searchResult && (
+            <div className="bg-white rounded-xl shadow-md border border-slate-100 p-8">
+              <h2 className="text-base font-bold text-slate-700 uppercase tracking-wide mb-5">
+                Resultado de la búsqueda
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-4 mb-6">
+                <div>
+                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Nombre</p>
+                  <p className="text-sm font-semibold text-slate-800 mt-0.5">
+                    {searchResult.name || searchResult.businessName}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Tipo de Cliente</p>
+                  <p className="text-sm font-semibold text-slate-800 mt-0.5">{searchResult.type}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Estado KYC</p>
+                  <span className={`inline-block mt-0.5 px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                    searchResult.status === 'APROBADO'
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-red-100 text-red-700'
+                  }`}>
+                    {searchResult.status}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Email</p>
+                  <p className="text-sm font-semibold text-slate-800 mt-0.5">{searchResult.email}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Teléfono</p>
+                  <p className="text-sm font-semibold text-slate-800 mt-0.5">{searchResult.phone}</p>
+                </div>
+              </div>
+
+              <div className="border-t border-slate-100 pt-5 flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={() => navigate(`/clientes/${searchResult.id}`)}
+                  className="flex-1 sm:flex-none sm:w-40 px-4 py-2.5 bg-blue-700 text-white text-sm font-semibold rounded-lg hover:bg-blue-800 transition-colors text-center"
+                >
+                  Ver Detalle
+                </button>
+                <button
+                  onClick={() => navigate(`/cuentas/nueva?customerId=${searchResult.id}`)}
+                  disabled={searchResult.status !== 'APROBADO'}
+                  className={`flex-1 sm:flex-none sm:w-40 px-4 py-2.5 text-sm font-semibold rounded-lg transition-colors text-center ${
+                    searchResult.status === 'APROBADO'
+                      ? 'bg-green-600 text-white hover:bg-green-700'
+                      : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                  }`}
+                  title={searchResult.status !== 'APROBADO' ? 'El cliente necesita KYC aprobado para crear cuenta' : ''}
+                >
+                  Nueva Cuenta
+                </button>
+              </div>
             </div>
-            <div>
-              <p className="text-gray-600">Tipo</p>
-              <p className="font-semibold">{searchResult.type}</p>
-            </div>
-            <div>
-              <p className="text-gray-600">Email</p>
-              <p className="font-semibold">{searchResult.email}</p>
-            </div>
-            <div>
-              <p className="text-gray-600">Teléfono</p>
-              <p className="font-semibold">{searchResult.phone}</p>
-            </div>
-            <div>
-              <p className="text-gray-600">Estado KYC</p>
-              <p className={`font-semibold text-sm ${
-                searchResult.status === 'APROBADO' ? 'text-green-600' : 'text-red-600'
-              }`}>
-                {searchResult.status}
-              </p>
-            </div>
-          </div>
-          <div className="flex gap-3">
-            <button
-              onClick={() => navigate(`/clientes/${searchResult.id}`)}
-              className="flex-1 bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
-            >
-              Ver Detalle
-            </button>
-            <button
-              onClick={() => navigate(`/cuentas/nueva?customerId=${searchResult.id}`)}
-              disabled={searchResult.status !== 'APROBADO'}
-              className={`flex-1 text-white p-2 rounded ${
-                searchResult.status === 'APROBADO'
-                  ? 'bg-green-600 hover:bg-green-700'
-                  : 'bg-gray-400 cursor-not-allowed'
-              }`}
-              title={searchResult.status !== 'APROBADO' ? 'El cliente necesita KYC aprobado para crear cuenta' : ''}
-            >
-              Nueva Cuenta
-            </button>
-            <button
-              onClick={() => navigate('/clientes/nuevo')}
-              className="flex-1 bg-gray-600 text-white p-2 rounded hover:bg-gray-700"
-            >
-              Nuevo Cliente
-            </button>
-          </div>
+          )}
         </div>
       )}
     </div>
