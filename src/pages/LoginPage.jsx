@@ -35,19 +35,25 @@ export function LoginPage() {
 
     setLoading(true);
     try {
-      // Guardar en contexto (esto también hace la llamada a loginStaff)
+      if (import.meta.env.DEV) {
+        console.log('📤 Enviando login:', { username, password });
+      }
       if (login) {
         await login(username, password);
       }
-
-      // Navegar a dashboard
       navigate('/dashboard', { replace: true });
     } catch (err) {
-      // Detectar si el error es porque el backend no está disponible
+      if (import.meta.env.DEV) {
+        console.error('❌ Error en login:', err.response?.status, err.response?.data);
+      }
       if (!err.response) {
-        setError('No se puede conectar al servidor. Verifique que el backend está disponible en localhost:8080');
+        setError('No se puede conectar al servidor. Por favor, intente más tarde.');
+      } else if (err.response?.status === 401 || err.response?.status === 403) {
+        setError('Usuario o contraseña incorrectos. Intente con: admin.core / admin');
+      } else if (err.response?.status === 400) {
+        setError(err.response?.data?.message || 'Solicitud inválida. Verifique los datos.');
       } else {
-        setError(err.response?.data?.message || 'Error al iniciar sesión. Verifique su usuario.');
+        setError(err.response?.data?.message || 'Error al iniciar sesión. Por favor, intente de nuevo.');
       }
     } finally {
       setLoading(false);
@@ -121,7 +127,17 @@ export function LoginPage() {
             </button>
           </form>
 
-          <p className="text-center text-gray-600 text-sm mt-6">
+          <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <p className="text-center text-blue-900 text-xs font-semibold mb-2">📝 Credenciales de Prueba</p>
+            <p className="text-center text-blue-800 text-xs">
+              Usuario: <code className="bg-white px-2 py-1 rounded">admin.core</code>
+            </p>
+            <p className="text-center text-blue-800 text-xs">
+              Contraseña: <code className="bg-white px-2 py-1 rounded">admin</code>
+            </p>
+          </div>
+
+          <p className="text-center text-gray-600 text-sm mt-4">
             ¿Problemas de acceso? Contacte a soporte
           </p>
         </div>

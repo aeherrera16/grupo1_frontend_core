@@ -29,8 +29,9 @@ export const AccountDetailPage = () => {
           // Tomar solo las últimas 10
           setTransactions((transactionsResponse.data || []).slice(0, 10));
         } catch (txErr) {
-          // Si falla el historial, continuar sin él
-          console.warn('No se pudo cargar el historial de transacciones:', txErr);
+          if (import.meta.env.DEV) {
+            console.warn('No se pudo cargar el historial de transacciones:', txErr);
+          }
           setTransactions([]);
         }
       } catch (err) {

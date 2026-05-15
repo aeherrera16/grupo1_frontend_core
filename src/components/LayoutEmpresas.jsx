@@ -16,7 +16,9 @@ function NotificationBell({ user }) {
       const data = await getNotifications(user.id);
       setNotifications(data);
     } catch (err) {
-      console.error("Error fetching notifications:", err);
+      if (import.meta.env.DEV) {
+        console.error("Error fetching notifications:", err);
+      }
     }
   };
 
@@ -34,11 +36,13 @@ function NotificationBell({ user }) {
     if (n.isUnread) {
       try {
         await markNotificationAsRead(n.id);
-        setNotifications(prev => prev.map(item => 
+        setNotifications(prev => prev.map(item =>
           item.id === n.id ? { ...item, isUnread: false } : item
         ));
       } catch (err) {
-        console.error("Error marking notification as read:", err);
+        if (import.meta.env.DEV) {
+          console.error("Error marking notification as read:", err);
+        }
       }
     }
   };

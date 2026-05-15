@@ -10,6 +10,9 @@ async function parseResponse(response) {
 
   if (!response.ok) {
     const message = typeof payload === 'string' ? payload : payload.error || 'Error en la solicitud';
+    if (import.meta.env.DEV) {
+      console.error(`API Error [${response.status}]:`, message);
+    }
     throw new Error(message);
   }
 
@@ -203,7 +206,13 @@ export async function getBatchDetails(batchId) {
 
 async function downloadBlobFile(url, filename) {
   const response = await fetch(url);
-  if (!response.ok) throw new Error(`Error descargando archivo: ${response.statusText}`);
+  if (!response.ok) {
+    const error = `Error descargando archivo: ${response.status}`;
+    if (import.meta.env.DEV) {
+      console.error(error, response.statusText);
+    }
+    throw new Error(error);
+  }
 
   const blob = await response.blob();
   const link = document.createElement('a');

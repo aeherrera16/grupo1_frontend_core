@@ -47,7 +47,7 @@ const IntranetLayout = () => (
 export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Routes>
           {/* Ruta pública de login */}
           <Route path="/login" element={<LoginPage />} />

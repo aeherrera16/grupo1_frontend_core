@@ -36,7 +36,6 @@ export function AuthProvider({ children }) {
     try {
       const res = await loginStaff(username, password);
 
-      // Mapear correctamente los campos del backend
       const userData = {
         id: res.coreUserId,
         name: res.fullName,
@@ -53,10 +52,22 @@ export function AuthProvider({ children }) {
 
       setAuth(newAuth);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(newAuth));
-      console.log('✅ Usuario autenticado:', userData);
+      if (import.meta.env.DEV) {
+        console.log('✅ Usuario autenticado:', userData);
+      }
       return userData;
     } catch (err) {
-      console.error('❌ Error en login:', err);
+      if (import.meta.env.DEV) {
+        console.error('❌ Error en login - Detalles:', {
+          status: err.response?.status,
+          statusText: err.response?.statusText,
+          message: err.response?.data?.message,
+          data: err.response?.data,
+          url: err.config?.url,
+        });
+      } else {
+        console.error('❌ Error en login');
+      }
       throw err;
     }
   };

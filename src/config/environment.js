@@ -5,7 +5,10 @@
 
 const ENV = {
   // API Base URL
-  API_BASE_URL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/core/v1',
+  // En desarrollo: URL relativa para usar proxy de Vite
+  // En producción: URL absoluta del backend
+  API_BASE_URL: import.meta.env.VITE_API_BASE_URL ||
+    (import.meta.env.DEV ? '/core/v1' : 'http://localhost:8080/core/v1'),
 
   // Timeouts
   API_TIMEOUT: import.meta.env.VITE_API_TIMEOUT || 10000,

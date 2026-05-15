@@ -27,7 +27,9 @@ export function BatchDetailsModal({ batchId, isOpen, onClose }) {
     try {
       await downloadComprobante(batchId);
     } catch (err) {
-      console.error('Error downloading comprobante:', err);
+      if (import.meta.env.DEV) {
+        console.error('Error downloading comprobante:', err);
+      }
     }
   };
 
@@ -35,7 +37,9 @@ export function BatchDetailsModal({ batchId, isOpen, onClose }) {
     try {
       await downloadNovedades(batchId);
     } catch (err) {
-      console.error('Error downloading novedades:', err);
+      if (import.meta.env.DEV) {
+        console.error('Error downloading novedades:', err);
+      }
     }
   };
 

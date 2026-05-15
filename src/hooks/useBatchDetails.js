@@ -36,7 +36,9 @@ export function useBatchDetails() {
       if (isMountedRef.current) {
         const errorMsg = err.message || 'Error al cargar los detalles del lote';
         setError(errorMsg);
-        console.error('Error fetching batch details:', err);
+        if (import.meta.env.DEV) {
+          console.error('Error fetching batch details:', err);
+        }
       }
       throw err;
     } finally {
@@ -58,7 +60,9 @@ export function useBatchDetails() {
       if (isMountedRef.current) {
         const errorMsg = err.message || 'Error al descargar el comprobante';
         setError(errorMsg);
-        console.error('Error downloading comprobante:', err);
+        if (import.meta.env.DEV) {
+          console.error('Error downloading comprobante:', err);
+        }
       }
       throw err;
     } finally {
@@ -80,7 +84,9 @@ export function useBatchDetails() {
       if (isMountedRef.current) {
         const errorMsg = err.message || 'Error al descargar el reporte de novedades';
         setError(errorMsg);
-        console.error('Error downloading novedades:', err);
+        if (import.meta.env.DEV) {
+          console.error('Error downloading novedades:', err);
+        }
       }
       throw err;
     } finally {
