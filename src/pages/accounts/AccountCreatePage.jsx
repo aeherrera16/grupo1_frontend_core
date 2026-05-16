@@ -23,6 +23,7 @@ function buildCustomerName(customer) {
     (customer.firstName
       ? `${customer.firstName} ${customer.lastName || ''}`.trim()
       : null) ||
+    customer.legalName ||
     customer.businessName ||
     customer.name ||
     ''

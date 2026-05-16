@@ -141,6 +141,7 @@ export const CustomerDetailPage = () => {
             <h1 className="text-3xl font-bold mb-4">
               {customer.fullName ||
                 (customer.firstName ? `${customer.firstName} ${customer.lastName || ''}`.trim() : null) ||
+                customer.legalName ||
                 customer.businessName ||
                 customer.name}
             </h1>
@@ -316,6 +317,7 @@ export const CustomerDetailPage = () => {
         onCancel={() => setConfirmModal({ isOpen: false, status: null })}
         confirmText="Sí, cambiar"
         cancelText="Cancelar"
+        isLoading={updating}
       />
     </div>
   );
