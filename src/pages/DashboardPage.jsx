@@ -37,7 +37,6 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      {/* Page Header */}
       <div className="page-header">
         <h1 className="page-title">
           Bienvenido, {user?.name || 'Operario'}
@@ -47,7 +46,6 @@ export function DashboardPage() {
         </p>
       </div>
 
-      {/* Grid de módulos */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {modules.map(({ path, title, description, Icon }) => (
           <div key={path} className="module-card">
@@ -69,7 +67,6 @@ export function DashboardPage() {
         ))}
       </div>
 
-      {/* Información del Usuario - Stats */}
       <div className="dashboard-card">
         <h2 className="text-xl font-bold text-gray-900 mb-6" style={{ color: '#001f3f' }}>
           Información del Usuario

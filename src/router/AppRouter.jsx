@@ -3,7 +3,6 @@ import ProtectedRoute from './ProtectedRoute';
 import Sidebar from '../components/layout/Sidebar';
 import Topbar from '../components/layout/Topbar';
 
-// Pages
 import { LoginPage } from '../pages/LoginPage';
 import { DashboardPage } from '../pages/DashboardPage';
 import { CustomerListPage } from '../pages/customers/CustomerListPage';
@@ -18,7 +17,6 @@ import { TransactionHistoryPage } from '../pages/transactions/TransactionHistory
 import { BranchesPage } from '../pages/BranchesPage';
 import { NotificationsPage } from '../pages/NotificationsPage';
 
-// Layout para rutas protegidas
 const Layout = ({ pageTitle = 'Dashboard' }) => (
   <div className="flex h-screen bg-gray-100">
     <Sidebar />

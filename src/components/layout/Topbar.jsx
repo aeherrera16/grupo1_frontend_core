@@ -23,7 +23,6 @@ const Topbar = () => {
         borderBottom: '1px solid #e9ecef'
       }}
     >
-      {/* Logo y branding */}
       <div className="flex items-center gap-3">
         <div
           className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold text-lg"
@@ -41,9 +40,7 @@ const Topbar = () => {
         </div>
       </div>
 
-      {/* Acciones del usuario */}
       <div className="flex items-center gap-6">
-        {/* Notificaciones */}
         <button
           className="relative p-2 rounded-lg transition duration-200"
           style={{ color: '#495057' }}
@@ -57,10 +54,8 @@ const Topbar = () => {
           <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500"></span>
         </button>
 
-        {/* Divider */}
         <div style={{ width: '1px', height: '24px', backgroundColor: '#e9ecef' }}></div>
 
-        {/* Menú de usuario */}
         <div className="relative">
           <button
             onClick={() => setShowUserMenu(!showUserMenu)}
@@ -84,7 +79,6 @@ const Topbar = () => {
             </div>
           </button>
 
-          {/* Dropdown menu */}
           {showUserMenu && (
             <div
               className="absolute right-0 mt-2 w-48 rounded-lg shadow-lg py-2 z-10"

@@ -98,7 +98,6 @@ export const AccountDetailPage = () => {
 
       {account && (
         <>
-          {/* Header */}
           <div className="bg-white p-6 rounded-lg shadow mb-6">
             <div className="flex justify-between items-start mb-4">
               <div>
@@ -137,7 +136,6 @@ export const AccountDetailPage = () => {
             </div>
           </div>
 
-          {/* Botones de Cambio de Estado */}
           <div className="bg-white p-6 rounded-lg shadow mb-6">
             <h3 className="font-bold mb-4">Cambiar Estado</h3>
 
@@ -185,7 +183,6 @@ export const AccountDetailPage = () => {
             </div>
           </div>
 
-          {/* Transacciones Recientes */}
           <div className="bg-white p-6 rounded-lg shadow">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold">Últimas Transacciones</h2>

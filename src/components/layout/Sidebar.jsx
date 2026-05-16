@@ -24,7 +24,6 @@ const Sidebar = ({ isOpen, onToggle }) => {
         isOpen ? 'w-56' : 'w-14'
       }`}
     >
-      {/* Toggle */}
       <div className={`flex items-center border-b border-slate-100 h-11 ${isOpen ? 'justify-between px-4' : 'justify-center'}`}>
         {isOpen && (
           <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 select-none">
@@ -40,7 +39,6 @@ const Sidebar = ({ isOpen, onToggle }) => {
         </button>
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
         {menuItems.map(({ path, label, Icon }) => (
           <NavLink
@@ -75,7 +73,6 @@ const Sidebar = ({ isOpen, onToggle }) => {
         ))}
       </nav>
 
-      {/* Footer */}
       {isOpen && (
         <div className="px-4 py-3 border-t border-slate-100">
           <p className="text-[10px] text-slate-400 text-center tracking-wide">Banquito v1.0.0</p>

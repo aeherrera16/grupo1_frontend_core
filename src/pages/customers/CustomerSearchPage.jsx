@@ -26,7 +26,6 @@ export const CustomerSearchPage = () => {
       setSearchResult(response.data);
       setError('');
     } catch (err) {
-      // Manejo inteligente de errores
       let errorMessage = 'Error al buscar cliente';
 
       if (err.response?.status === 404) {
@@ -52,7 +51,6 @@ export const CustomerSearchPage = () => {
 
   return (
     <div className="w-full">
-      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">Búsqueda de Clientes</h1>
@@ -66,11 +64,9 @@ export const CustomerSearchPage = () => {
         </button>
       </div>
 
-      {/* Search Card */}
       <div className="bg-white rounded-xl shadow-md border border-slate-100 p-8 mb-6">
         <form onSubmit={handleSearch}>
           <div className="flex flex-col md:flex-row gap-4 items-end">
-            {/* Tipo de Identificación */}
             <div className="flex-1">
               <label className="block text-sm font-semibold text-slate-700 mb-1.5">
                 Tipo de Identificación
@@ -86,7 +82,6 @@ export const CustomerSearchPage = () => {
               </select>
             </div>
 
-            {/* Número */}
             <div className="flex-1">
               <label className="block text-sm font-semibold text-slate-700 mb-1.5">
                 Número de Identificación
@@ -100,7 +95,6 @@ export const CustomerSearchPage = () => {
               />
             </div>
 
-            {/* Botón Buscar */}
             <div className="flex-1 md:flex-none md:w-40">
               <button
                 type="submit"
@@ -114,7 +108,6 @@ export const CustomerSearchPage = () => {
         </form>
       </div>
 
-      {/* Área de resultados — solo visible tras una búsqueda */}
       {hasSearched && (
         <div>
           {error && (

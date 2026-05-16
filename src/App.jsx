@@ -5,28 +5,17 @@ import ProtectedRoute from './router/ProtectedRoute';
 import Sidebar from './components/layout/Sidebar';
 import Topbar from './components/layout/Topbar';
 
-// Pages - Públicas
 import { LoginPage } from './pages/LoginPage';
-
-// Pages - Dashboard
 import { DashboardPage } from './pages/DashboardPage';
-
-// Pages - Clientes
 import { CustomerSearchPage } from './pages/customers/CustomerSearchPage';
 import { CustomerDetailPage } from './pages/customers/CustomerDetailPage';
 import { CustomerCreatePage } from './pages/customers/CustomerCreatePage';
 import { CustomerListPage } from './pages/customers/CustomerListPage';
-
-// Pages - Cuentas
 import { AccountDetailPage } from './pages/accounts/AccountDetailPage';
 import { AccountCreatePage } from './pages/accounts/AccountCreatePage';
 import { AccountAvailabilityPage } from './pages/accounts/AccountAvailabilityPage';
-
-// Pages - Transacciones
 import { TransactionFormPage } from './pages/transactions/TransactionFormPage';
 import { TransactionHistoryPage } from './pages/transactions/TransactionHistoryPage';
-
-// Pages - Módulos Secundarios
 import { BranchesPage } from './pages/BranchesPage';
 
 import './index.css';
@@ -54,7 +43,6 @@ const IntranetLayout = () => {
   );
 };
 
-// createBrowserRouter habilita el data router, requerido para useBlocker y usePrompt
 const router = createBrowserRouter(
   [
     {
@@ -71,23 +59,15 @@ const router = createBrowserRouter(
       children: [
         { index: true, element: <Navigate to="dashboard" replace /> },
         { path: 'dashboard', element: <DashboardPage /> },
-
-        // Clientes — rutas estáticas antes que dinámicas
         { path: 'clientes', element: <CustomerSearchPage /> },
         { path: 'clientes/lista', element: <CustomerListPage /> },
         { path: 'clientes/nuevo', element: <CustomerCreatePage /> },
         { path: 'clientes/:id', element: <CustomerDetailPage /> },
-
-        // Cuentas
         { path: 'cuentas/nueva', element: <AccountCreatePage /> },
         { path: 'cuentas/:accountNumber/disponibilidad', element: <AccountAvailabilityPage /> },
         { path: 'cuentas/:accountNumber', element: <AccountDetailPage /> },
-
-        // Transacciones
         { path: 'transacciones/nueva', element: <TransactionFormPage /> },
         { path: 'transacciones/historial/:accountNumber', element: <TransactionHistoryPage /> },
-
-        // Secundarios
         { path: 'sucursales', element: <BranchesPage /> },
       ],
     },

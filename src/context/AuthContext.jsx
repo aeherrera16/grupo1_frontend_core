@@ -48,9 +48,6 @@ export function AuthProvider({ children }) {
 
       setAuth(newAuth);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(newAuth));
-      if (import.meta.env.DEV) {
-        console.log('✅ Usuario autenticado:', userData);
-      }
       return userData;
     } catch (err) {
       if (import.meta.env.DEV) {

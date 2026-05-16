@@ -88,7 +88,6 @@ export const CustomerDetailPage = () => {
 
       await fetchCustomer();
 
-      // Reload accounts to reflect updated statuses
       try {
         const accountsResponse = await getAccountsByCustomer(id);
         setAccounts(accountsResponse.data || []);
@@ -178,7 +177,6 @@ export const CustomerDetailPage = () => {
             </div>
           </div>
 
-          {/* Cambiar Estado */}
           <div className="bg-white p-6 rounded-lg shadow mb-6">
             <h3 className="font-bold mb-4">Cambiar Estado</h3>
             {updating && (

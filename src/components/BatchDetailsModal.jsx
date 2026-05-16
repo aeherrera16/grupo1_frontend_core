@@ -53,7 +53,6 @@ export function BatchDetailsModal({ batchId, isOpen, onClose }) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-        {/* Header */}
         <div className="sticky top-0 bg-gradient-to-r from-red-900 to-red-800 text-white p-8 flex justify-between items-center border-b border-red-700">
           <div>
             <p className="text-red-200 text-sm uppercase tracking-widest font-semibold mb-1">Detalle del Lote</p>
@@ -69,7 +68,6 @@ export function BatchDetailsModal({ batchId, isOpen, onClose }) {
           </button>
         </div>
 
-        {/* Content */}
         <div className="p-8">
           {error && (
             <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
@@ -83,7 +81,6 @@ export function BatchDetailsModal({ batchId, isOpen, onClose }) {
             </div>
           ) : batchDetails ? (
             <>
-              {/* Estado del Lote */}
               <div className="mb-10">
                 <h3 className="text-2xl font-bold text-red-900 mb-6">Estado del Lote</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -118,11 +115,9 @@ export function BatchDetailsModal({ batchId, isOpen, onClose }) {
                 </div>
               </div>
 
-              {/* Resumen Financiero */}
               <div className="mb-10">
                 <h3 className="text-2xl font-bold text-red-900 mb-6">Resumen Financiero</h3>
 
-                {/* Estadísticas de Registros */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                   <div className="bg-blue-50 p-6 rounded-xl border border-blue-200">
                     <p className="text-xs text-blue-700 font-semibold uppercase tracking-wider mb-2">Total Registros</p>
@@ -144,7 +139,6 @@ export function BatchDetailsModal({ batchId, isOpen, onClose }) {
                   </div>
                 </div>
 
-                {/* Desglose de Comisiones */}
                 <div className="bg-gradient-to-r from-red-50 to-red-100 border-l-4 border-red-900 p-8 rounded-xl">
                   <h4 className="text-sm font-bold text-red-700 uppercase tracking-widest mb-6">Desglose de Comisiones</h4>
                   <div className="grid grid-cols-3 gap-6">
@@ -170,7 +164,6 @@ export function BatchDetailsModal({ batchId, isOpen, onClose }) {
                 </div>
               </div>
 
-              {/* Action Buttons */}
               <div className="grid grid-cols-2 gap-4">
                 <button
                   onClick={handleDownloadComprobante}

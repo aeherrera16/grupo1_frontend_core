@@ -1,13 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useBlocker } from 'react-router-dom';
 import { createCustomer, getCustomerSubtypesByType } from '../../api/customerApi';
-import { getAllBranches } from '../../api/branchApi';
 import { validateEmail, validatePhone, validateIdentification, validateRuc } from '../../helpers/validators';
-import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import ConfirmModal from '../../components/ui/ConfirmModal';
 import RepresentativeSearchModal from '../../components/customers/RepresentativeSearchModal';
 
-// Valida un campo individual y retorna el mensaje de error (vacío si es válido)
 const validateField = (name, value, idType) => {
   switch (name) {
     case 'identificationNumber':
@@ -56,9 +53,7 @@ const today = new Date().toISOString().split('T')[0];
 export const CustomerCreatePage = () => {
   const navigate = useNavigate();
   const [customerType, setCustomerType] = useState('NATURAL');
-  const [branches, setBranches] = useState([]);
   const [subtypeId, setSubtypeId] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -72,7 +67,6 @@ export const CustomerCreatePage = () => {
   const [formData, setFormData] = useState({
     identificationType: 'CEDULA',
     identificationNumber: '',
-    branchId: '',
     email: '',
     phone: '',
     address: '',
@@ -83,15 +77,7 @@ export const CustomerCreatePage = () => {
     incorporationDate: '',
   });
 
-  // Bloquea la navegación si hay cambios sin guardar
   const blocker = useBlocker(isDirty && !success);
-
-  useEffect(() => {
-    getAllBranches()
-      .then((res) => setBranches(res.data || []))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
 
   useEffect(() => {
     if (!customerType) return;
@@ -151,7 +137,6 @@ export const CustomerCreatePage = () => {
     setIsDirty(true);
   };
 
-  // Comprueba si los campos obligatorios están rellenos (sin validar formato)
   const isFormFilled = () => {
     const base =
       formData.identificationNumber &&
@@ -165,7 +150,6 @@ export const CustomerCreatePage = () => {
     return base && formData.businessName && formData.incorporationDate && selectedRepresentative;
   };
 
-  // Valida todos los campos y actualiza el estado de errores; retorna true si todo está OK
   const validateAll = () => {
     const fields =
       customerType === 'NATURAL'
@@ -215,7 +199,6 @@ export const CustomerCreatePage = () => {
         mobilePhone: formData.phone,
         address: formData.address,
       };
-      if (formData.branchId) payload.branchId = formData.branchId;
 
       if (customerType === 'NATURAL') {
         payload.firstName = formData.firstName;
@@ -250,8 +233,6 @@ export const CustomerCreatePage = () => {
     }
   };
 
-  if (loading) return <LoadingSpinner fullPage={true} />;
-
   const inputCls = (name) =>
     `w-full px-3 py-2.5 border rounded-lg text-sm text-slate-800 placeholder-slate-400 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition ${
       fieldErrors[name] && touched[name] ? 'border-red-400 bg-red-50' : 'border-slate-300'
@@ -271,14 +252,12 @@ export const CustomerCreatePage = () => {
 
   return (
     <>
-      {/* ── Modal búsqueda de representante ── */}
       <RepresentativeSearchModal
         isOpen={showRepModal}
         onClose={() => setShowRepModal(false)}
         onSelect={handleSelectRepresentative}
       />
 
-      {/* ── Confirmación al salir sin guardar ── */}
       <ConfirmModal
         isOpen={blocker.state === 'blocked'}
         title="¿Descartar cambios?"
@@ -290,7 +269,6 @@ export const CustomerCreatePage = () => {
       />
 
       <div className="max-w-2xl mx-auto">
-        {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <button
             type="button"
@@ -308,7 +286,6 @@ export const CustomerCreatePage = () => {
           </div>
         </div>
 
-        {/* Notificación de éxito */}
         {success && (
           <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-5 flex items-center gap-3">
             <svg className="w-5 h-5 text-green-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -320,7 +297,6 @@ export const CustomerCreatePage = () => {
           </div>
         )}
 
-        {/* Error del servidor */}
         {serverError && (
           <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-5 flex items-start gap-3">
             <svg className="w-5 h-5 text-red-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -334,11 +310,8 @@ export const CustomerCreatePage = () => {
         )}
 
         <form onSubmit={handleSubmit} noValidate>
-          {/* ── Tipo de Cliente y Subtipo ── */}
           <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 mb-4">
             <p className="text-xs font-bold uppercase tracking-wide text-slate-500 mb-3">Tipo de Cliente</p>
-            
-            {/* Botones de Tipo */}
             <div className="flex gap-3">
               {['NATURAL', 'JURIDICO'].map((type) => (
                 <button
@@ -370,7 +343,6 @@ export const CustomerCreatePage = () => {
               ))}
             </div>
 
-            {/* ── AQUÍ SE AGREGA EL COMBO DE SUBTIPO ── */}
             <div className="mt-5 border-t border-slate-100 pt-5">
               <label className="block text-sm font-semibold text-slate-700 mb-1.5">
                 Subtipo de Cliente<Required />
@@ -393,7 +365,6 @@ export const CustomerCreatePage = () => {
             
           </div>
 
-          {/* ── Identificación y Contacto ── */}
           <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 mb-4">
             <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500 mb-4">
               Identificación y Contacto
@@ -484,24 +455,9 @@ export const CustomerCreatePage = () => {
                 />
                 <FieldError name="address" />
               </div>
-              <div className="md:col-span-2">
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Sucursal</label>
-                <select
-                  name="branchId"
-                  value={formData.branchId}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                >
-                  <option value="">Seleccionar sucursal (opcional)...</option>
-                  {branches.map((b) => (
-                    <option key={b.id} value={b.id}>{b.name}</option>
-                  ))}
-                </select>
-              </div>
             </div>
           </div>
 
-          {/* ── Datos Personales (NATURAL) ── */}
           {customerType === 'NATURAL' && (
             <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 mb-4">
               <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500 mb-4">Datos Personales</h3>
@@ -555,7 +511,6 @@ export const CustomerCreatePage = () => {
             </div>
           )}
 
-          {/* ── Datos Empresariales (JURIDICO) ── */}
           {customerType === 'JURIDICO' && (
             <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 mb-4">
               <h3 className="text-xs font-bold uppercase tracking-wide text-slate-500 mb-4">Datos Empresariales</h3>
@@ -592,7 +547,6 @@ export const CustomerCreatePage = () => {
                 </div>
               </div>
 
-              {/* ── Representante Legal (obligatorio) ── */}
               <div className="border-t border-slate-100 pt-5">
                 <div className="flex items-start justify-between mb-3">
                   <div>
@@ -650,7 +604,6 @@ export const CustomerCreatePage = () => {
             </div>
           )}
 
-          {/* ── Botones de acción ── */}
           <div className="flex gap-3">
             <button
               type="button"

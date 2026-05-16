@@ -1,5 +1,4 @@
 import { useState } from 'react';
-// import { getHolidays, createHoliday, deleteHoliday } from '../services/apiClient'; // No implementados en backend
 import axiosInstance from '../api/axiosInstance';
 import { ENDPOINTS } from '../config/environment';
 

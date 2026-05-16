@@ -131,7 +131,6 @@ const RepresentativeSearchModal = ({ isOpen, onClose, onSelect }) => {
           className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 pointer-events-auto"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-slate-100">
             <div>
               <h2 className="text-lg font-bold text-slate-800">Buscar Representante Legal</h2>
@@ -150,7 +149,6 @@ const RepresentativeSearchModal = ({ isOpen, onClose, onSelect }) => {
             </button>
           </div>
 
-          {/* Search form */}
           <div className="p-6">
             <form onSubmit={handleSearch} className="flex gap-2 mb-5">
               <select
@@ -183,7 +181,6 @@ const RepresentativeSearchModal = ({ isOpen, onClose, onSelect }) => {
               </button>
             </form>
 
-            {/* Error / No results */}
             {error && (
               <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-4 flex items-start gap-3">
                 <svg className="w-4 h-4 text-orange-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -201,7 +198,6 @@ const RepresentativeSearchModal = ({ isOpen, onClose, onSelect }) => {
               </div>
             )}
 
-            {/* Empty state after search */}
             {searched && !result && !error && (
               <div className="text-center py-8">
                 <svg className="w-12 h-12 mx-auto mb-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -214,7 +210,6 @@ const RepresentativeSearchModal = ({ isOpen, onClose, onSelect }) => {
               </div>
             )}
 
-            {/* Result card */}
             {result && (
               <div className="border-2 border-blue-200 bg-blue-50 rounded-xl p-4">
                 <div className="flex items-start justify-between gap-4">
@@ -246,7 +241,6 @@ const RepresentativeSearchModal = ({ isOpen, onClose, onSelect }) => {
             )}
           </div>
 
-          {/* Footer */}
           <div className="flex justify-end px-6 pb-6">
             <button
               type="button"

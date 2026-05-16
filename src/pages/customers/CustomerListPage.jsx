@@ -51,7 +51,6 @@ export const CustomerListPage = () => {
     <div className="max-w-4xl mx-auto relative">
       <h1 className="text-3xl font-bold mb-6">Gestionar Clientes</h1>
 
-      {/* Formulario de búsqueda */}
       <form onSubmit={handleSearch} className="bg-white p-6 rounded-lg shadow mb-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
           <div>
@@ -101,7 +100,6 @@ export const CustomerListPage = () => {
         </div>
       )}
 
-      {/* Resultado */}
       {customer && (
         <div className="bg-white p-6 rounded-lg shadow">
           <h2 className="text-xl font-bold mb-4">Resultado</h2>
@@ -165,7 +163,6 @@ export const CustomerListPage = () => {
         </div>
       )}
 
-      {/* Botón flotante para crear nuevo cliente */}
       <button
         onClick={() => navigate('/clientes/nuevo')}
         className="fixed bottom-8 right-8 bg-blue-600 text-white rounded-full p-4 hover:bg-blue-700 shadow-lg hover:shadow-xl transition"

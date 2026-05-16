@@ -54,7 +54,6 @@ export const AccountCreatePage = () => {
     isFavorite: false,
   });
 
-  // Prefetch customer when ?customerId=X is present in URL
   useEffect(() => {
     if (!prefilledCustomerId) return;
 
@@ -262,7 +261,6 @@ export const AccountCreatePage = () => {
         </div>
       )}
 
-      {/* Customer Selector */}
       <div className="bg-white p-6 rounded-lg shadow mb-6">
         <h2 className="text-lg font-bold mb-4">Seleccionar Cliente</h2>
         {customerLoading ? (

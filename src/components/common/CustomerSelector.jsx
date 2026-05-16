@@ -38,8 +38,6 @@ const ID_TYPES = [
 const selectClass =
   'rounded-sm border border-slate-300 bg-white px-2 py-2.5 text-sm outline-none transition focus:border-banker-blue focus:ring-2 focus:ring-banker-blue/15';
 
-// ─── Component ───────────────────────────────────────────────────────────────
-
 export function CustomerSelector({ value, onChange, error }) {
   const [idType, setIdType] = useState('CEDULA');
   const [inputValue, setInputValue] = useState('');
@@ -54,7 +52,6 @@ export function CustomerSelector({ value, onChange, error }) {
   const inputRef = useRef(null);
   const debouncedTerm = useDebounce(inputValue, 300);
 
-  // Sync external value reset (e.g. parent resets to null)
   useEffect(() => {
     if (!value) {
       setSelectedName('');
@@ -96,13 +93,11 @@ export function CustomerSelector({ value, onChange, error }) {
     }
   }, []);
 
-  // Auto-search with debounce when number input changes
   useEffect(() => {
     if (value) return;
     doSearch(idType, debouncedTerm);
   }, [debouncedTerm, idType, value, doSearch]);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleOutside(e) {
       if (containerRef.current && !containerRef.current.contains(e.target)) {
@@ -187,7 +182,6 @@ export function CustomerSelector({ value, onChange, error }) {
 
   return (
     <div ref={containerRef} className="relative">
-      {/* Type selector + number input + search button */}
       <div className="flex gap-2">
         <select
           value={idType}
@@ -252,7 +246,6 @@ export function CustomerSelector({ value, onChange, error }) {
         )}
       </div>
 
-      {/* Dropdown results */}
       {!value && open && results.length > 0 && (
         <ul
           id="customer-selector-listbox"
@@ -295,7 +288,6 @@ export function CustomerSelector({ value, onChange, error }) {
         </ul>
       )}
 
-      {/* No results hint */}
       {!value && noResults && !loading && inputValue.trim() && (
         <div className="absolute z-50 mt-1 w-full rounded-sm border border-slate-200 bg-white px-4 py-3 text-sm text-slate-400 shadow-lg">
           Cliente no encontrado

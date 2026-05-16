@@ -13,7 +13,6 @@ export function LoginPage() {
 
   useEffect(() => {
     document.title = 'Login - Intranet Banquito';
-    // Si ya está autenticado, redirige a dashboard
     if (isAuthenticated) {
       navigate('/dashboard', { replace: true });
     }
@@ -59,7 +58,6 @@ export function LoginPage() {
 
   return (
     <div className="min-h-screen flex bg-gray-100">
-      {/* Lado Izquierdo - Imagen */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center p-8">
         <div className="text-center">
           <img src={heroImage} alt="Banquito" className="rounded-lg shadow-2xl max-h-96 object-cover" />
@@ -68,7 +66,6 @@ export function LoginPage() {
         </div>
       </div>
 
-      {/* Lado Derecho - Formulario */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
