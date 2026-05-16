@@ -5,6 +5,8 @@ import { getTransactionHistory } from '../../api/transactionApi';
 import { formatCurrency, formatDate, formatDateTime, formatStatus } from '../../helpers/formatters';
 import StatusBadge from '../../components/ui/StatusBadge';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import ConfirmModal from '../../components/ui/ConfirmModal';
+import { useConfirm } from '../../hooks/useConfirm';
 
 export const AccountDetailPage = () => {
   const { accountNumber } = useParams();
@@ -12,8 +14,12 @@ export const AccountDetailPage = () => {
   const [account, setAccount] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState('');
   const [historyError, setHistoryError] = useState(null);
+  const [actionMessage, setActionMessage] = useState(null);
+
+  const { confirm, modalProps } = useConfirm();
 
   const fetchAccount = async () => {
     setHistoryError(null);
@@ -43,23 +49,31 @@ export const AccountDetailPage = () => {
   }, [accountNumber]);
 
   const handleStatusChange = async (action, apiCall, successMessage) => {
-    if (!window.confirm(`¿Estás seguro de ${action} esta cuenta?`)) return;
-    setLoading(true);
+    const confirmed = await confirm({
+      title: 'Confirmar acción',
+      message: `¿Estás seguro de ${action} esta cuenta?`,
+    });
+    if (!confirmed) return;
+
+    setActionLoading(true);
+    setActionMessage(null);
     try {
       await apiCall(accountNumber);
       await fetchAccount();
-      alert(successMessage);
-    } catch (error) {
-      const status = error.response?.status;
+      setActionMessage({ type: 'success', text: successMessage });
+    } catch (err) {
+      const status = err.response?.status;
+      let text;
       if (status === 403) {
-        alert(`No tienes permiso para ${action} cuentas. El backend ha rechazado la petición (403). Contacta al administrador del sistema.`);
+        text = `No tienes permiso para ${action} cuentas. El backend ha rechazado la petición (403). Contacta al administrador del sistema.`;
       } else if (status === 404) {
-        alert(`Cuenta no encontrada.`);
+        text = 'Cuenta no encontrada.';
       } else {
-        alert(`Error al ${action}: ${error.response?.data?.message || error.message}`);
+        text = `Error al ${action}: ${err.response?.data?.message || err.message}`;
       }
+      setActionMessage({ type: 'error', text });
     } finally {
-      setLoading(false);
+      setActionLoading(false);
     }
   };
 
@@ -126,31 +140,44 @@ export const AccountDetailPage = () => {
           {/* Botones de Cambio de Estado */}
           <div className="bg-white p-6 rounded-lg shadow mb-6">
             <h3 className="font-bold mb-4">Cambiar Estado</h3>
+
+            {actionMessage && (
+              <div
+                className={`p-3 rounded mb-4 text-sm ${
+                  actionMessage.type === 'success'
+                    ? 'bg-green-50 text-green-800 border border-green-200'
+                    : 'bg-red-50 text-red-800 border border-red-200'
+                }`}
+              >
+                {actionMessage.text}
+              </div>
+            )}
+
             <div className="flex flex-wrap gap-3">
               <button
                 onClick={() => handleStatusChange('activar', activateAccount, 'Cuenta activada correctamente')}
-                disabled={account.status === 'ACTIVA' || loading}
+                disabled={account.status === 'ACTIVA' || actionLoading}
                 className="bg-green-800 text-white px-4 py-2 rounded hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
               >
                 Activar
               </button>
               <button
                 onClick={() => handleStatusChange('inactivar', inactivateAccount, 'Cuenta inactivada correctamente')}
-                disabled={account.status === 'INACTIVO' || loading}
+                disabled={account.status === 'INACTIVO' || actionLoading}
                 className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
               >
                 Inactivar
               </button>
               <button
                 onClick={() => handleStatusChange('bloquear', blockAccount, 'Cuenta bloqueada correctamente')}
-                disabled={account.status === 'BLOQUEADO' || loading}
+                disabled={account.status === 'BLOQUEADO' || actionLoading}
                 className="bg-red-900 text-white px-4 py-2 rounded hover:bg-red-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
               >
                 Bloquear
               </button>
               <button
                 onClick={() => handleStatusChange('suspender', suspendAccount, 'Cuenta suspendida correctamente')}
-                disabled={account.status === 'SUSPENDIDO' || loading}
+                disabled={account.status === 'SUSPENDIDO' || actionLoading}
                 className="bg-red-900 text-white px-4 py-2 rounded hover:bg-red-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
               >
                 Suspender
@@ -212,6 +239,7 @@ export const AccountDetailPage = () => {
         </>
       )}
 
+      <ConfirmModal {...modalProps} confirmText="Sí, confirmar" />
     </div>
   );
 };

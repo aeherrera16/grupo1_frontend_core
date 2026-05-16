@@ -16,6 +16,7 @@ function buildDisplayName(customer) {
   if (customer.firstName || customer.lastName) {
     return `${customer.firstName ?? ''} ${customer.lastName ?? ''}`.trim();
   }
+  if (customer.legalName) return customer.legalName;
   if (customer.businessName) return customer.businessName;
   return String(customer.id);
 }

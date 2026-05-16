@@ -4,6 +4,7 @@ import { createCustomer, getCustomerSubtypesByType } from '../../api/customerApi
 import { getAllBranches } from '../../api/branchApi';
 import { validateEmail, validatePhone, validateIdentification, validateRuc } from '../../helpers/validators';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import ConfirmModal from '../../components/ui/ConfirmModal';
 import RepresentativeSearchModal from '../../components/customers/RepresentativeSearchModal';
 
 // Valida un campo individual y retorna el mensaje de error (vacío si es válido)
@@ -278,43 +279,15 @@ export const CustomerCreatePage = () => {
       />
 
       {/* ── Confirmación al salir sin guardar ── */}
-      {blocker.state === 'blocked' && (
-        <>
-          <div className="fixed inset-0 bg-slate-900/60" style={{ zIndex: 60 }} />
-          <div
-            className="fixed inset-0 flex items-center justify-center pointer-events-none"
-            style={{ zIndex: 70 }}
-          >
-            <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm mx-4 pointer-events-auto">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
-                  <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="font-bold text-slate-800">¿Descartar cambios?</h3>
-                  <p className="text-sm text-slate-500 mt-0.5">Tiene cambios sin guardar en el formulario.</p>
-                </div>
-              </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => blocker.reset()}
-                  className="flex-1 py-2.5 text-sm font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
-                >
-                  Continuar editando
-                </button>
-                <button
-                  onClick={() => blocker.proceed()}
-                  className="flex-1 py-2.5 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
-                >
-                  Salir sin guardar
-                </button>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
+      <ConfirmModal
+        isOpen={blocker.state === 'blocked'}
+        title="¿Descartar cambios?"
+        message="Tiene cambios sin guardar en el formulario. ¿Desea salir de todos modos?"
+        onConfirm={() => blocker.proceed()}
+        onCancel={() => blocker.reset()}
+        confirmText="Salir sin guardar"
+        cancelText="Continuar editando"
+      />
 
       <div className="max-w-2xl mx-auto">
         {/* Header */}

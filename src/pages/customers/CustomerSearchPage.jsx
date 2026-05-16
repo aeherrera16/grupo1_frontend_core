@@ -142,6 +142,7 @@ export const CustomerSearchPage = () => {
                   <p className="text-sm font-semibold text-slate-800 mt-0.5">
                     {searchResult.fullName ||
                       (searchResult.firstName ? `${searchResult.firstName} ${searchResult.lastName || ''}`.trim() : null) ||
+                      searchResult.legalName ||
                       searchResult.businessName ||
                       searchResult.name}
                   </p>
