@@ -406,7 +406,6 @@ export const TransactionFormPage = () => {
             </svg>
             <p className="text-sm font-semibold text-green-800">{success.message}</p>
           </div>
-          <p className="text-xs text-green-700 ml-6">ID: {success.transactionId}</p>
           <p className="text-xs text-green-700 ml-6">Saldo resultante: {formatCurrency(success.resultingBalance)}</p>
         </div>
       )}

@@ -140,10 +140,11 @@ export const CustomerSearchPage = () => {
                 <div>
                   <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Nombre</p>
                   <p className="text-sm font-semibold text-slate-800 mt-0.5">
-                    {searchResult.fullName ||
-                      (searchResult.firstName ? `${searchResult.firstName} ${searchResult.lastName || ''}`.trim() : null) ||
-                      searchResult.businessName ||
-                      searchResult.name}
+                    {/* CORRECCIÓN AQUÍ: Validamos primero el tipo de cliente comercial */}
+                    {searchResult.customerType === 'JUR' || searchResult.type === 'JUR' || searchResult.customerType === 'JURIDICO' || searchResult.type === 'JURIDICO'
+                      ? searchResult.legalName || searchResult.fullName || searchResult.name
+                      : searchResult.fullName || `${searchResult.firstName || ''} ${searchResult.lastName || ''}`.trim() || searchResult.name
+                    }
                   </p>
                 </div>
                 <div>
