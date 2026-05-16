@@ -58,8 +58,6 @@ export function AuthProvider({ children }) {
           data: err.response?.data,
           url: err.config?.url,
         });
-      } else {
-        console.error('❌ Error en login');
       }
       throw err;
     }

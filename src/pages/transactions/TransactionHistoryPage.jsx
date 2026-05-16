@@ -128,7 +128,7 @@ export const TransactionHistoryPage = () => {
                 const movementType = tx.movementType || tx.type;
 
                 return (
-                  <tr key={idx} className="border-b hover:bg-gray-50">
+                  <tr key={tx.id ?? tx.transactionUuid ?? idx} className="border-b hover:bg-gray-50">
                     <td className="p-3 text-gray-700">
                       {formatDateTime(tx.date)}
                     </td>
