@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getCustomer } from '../../api/customerApi';
-import { getAccountsByCustomer } from '../../api/accountApi';
-import { formatCurrency, formatDate } from '../../helpers/formatters';
+import { getCustomer, updateCustomerStatus } from '../../api/customerApi';
+import { getAccountsByCustomer, inactivateAccount, suspendAccount } from '../../api/accountApi';
+import { formatCurrency } from '../../helpers/formatters';
 import StatusBadge from '../../components/ui/StatusBadge';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import ConfirmModal from '../../components/ui/ConfirmModal';
+import BackButton from '../../components/ui/BackButton';
 
 export const CustomerDetailPage = () => {
   const { id } = useParams();
@@ -14,12 +16,20 @@ export const CustomerDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [accountsError, setAccountsError] = useState('');
+  const [updating, setUpdating] = useState(false);
+  const [confirmModal, setConfirmModal] = useState({ isOpen: false, status: null });
+  const [actionError, setActionError] = useState('');
+  const [accountsUpdateResult, setAccountsUpdateResult] = useState(null);
+
+  const fetchCustomer = async () => {
+    const res = await getCustomer(id);
+    setCustomer(res.data);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const customerResponse = await getCustomer(id);
-        setCustomer(customerResponse.data);
+        await fetchCustomer();
 
         try {
           const accountsResponse = await getAccountsByCustomer(id);
@@ -39,6 +49,78 @@ export const CustomerDetailPage = () => {
     fetchData();
   }, [id]);
 
+  const STATUS_LABELS = {
+    ACTIVO: 'Activar',
+    INACTIVO: 'Inactivar',
+    SUSPENDIDO: 'Suspender',
+  };
+
+  const applyStatusToAccounts = async (newStatus) => {
+    if (newStatus === 'ACTIVO' || accounts.length === 0) return null;
+
+    const actionFn = newStatus === 'INACTIVO' ? inactivateAccount : suspendAccount;
+    const results = await Promise.allSettled(
+      accounts.map((acc) => actionFn(acc.accountNumber))
+    );
+
+    const failed = [];
+    let updated = 0;
+    results.forEach((result, i) => {
+      if (result.status === 'fulfilled') {
+        updated++;
+      } else {
+        failed.push(accounts[i].accountNumber);
+      }
+    });
+
+    return { updated, failed };
+  };
+
+  const handleStatusChange = async (newStatus) => {
+    setUpdating(true);
+    setActionError('');
+    setAccountsUpdateResult(null);
+    try {
+      await updateCustomerStatus(customer.id, newStatus);
+      setConfirmModal({ isOpen: false, status: null });
+
+      const result = await applyStatusToAccounts(newStatus);
+
+      await fetchCustomer();
+
+      // Reload accounts to reflect updated statuses
+      try {
+        const accountsResponse = await getAccountsByCustomer(id);
+        setAccounts(accountsResponse.data || []);
+      } catch (_) {
+        // keep existing accounts list if reload fails
+      }
+
+      if (newStatus === 'ACTIVO') {
+        setAccountsUpdateResult({
+          type: 'info',
+          message: 'El cliente ha sido activado. Las cuentas deben reactivarse manualmente si corresponde.',
+        });
+      } else if (result) {
+        setAccountsUpdateResult({
+          type: result.failed.length > 0 ? 'warning' : 'success',
+          updated: result.updated,
+          failed: result.failed,
+        });
+      }
+    } catch (err) {
+      setConfirmModal({ isOpen: false, status: null });
+      const data = err.response?.data;
+      setActionError(
+        typeof data === 'string' && !data.includes('<html')
+          ? data
+          : data?.message || 'Error al cambiar el estado del cliente'
+      );
+    } finally {
+      setUpdating(false);
+    }
+  };
+
   if (loading) return <LoadingSpinner fullPage={true} />;
 
   if (error) {
@@ -51,12 +133,7 @@ export const CustomerDetailPage = () => {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <button
-        onClick={() => navigate(-1)}
-        className="mb-4 text-blue-600 hover:text-blue-800"
-      >
-        ← Volver
-      </button>
+      <BackButton to="/clientes" />
 
       {customer && (
         <>
@@ -100,6 +177,73 @@ export const CustomerDetailPage = () => {
             </div>
           </div>
 
+          {/* Cambiar Estado */}
+          <div className="bg-white p-6 rounded-lg shadow mb-6">
+            <h3 className="font-bold mb-4">Cambiar Estado</h3>
+            {updating && (
+              <div className="bg-blue-50 text-blue-800 p-3 rounded mb-4 text-sm flex items-center gap-2">
+                <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+                </svg>
+                Actualizando cliente y cuentas...
+              </div>
+            )}
+            {actionError && (
+              <div className="bg-red-100 text-red-800 p-3 rounded mb-4 text-sm">
+                {actionError}
+              </div>
+            )}
+            {accountsUpdateResult && (
+              <div
+                className={`p-3 rounded mb-4 text-sm ${
+                  accountsUpdateResult.type === 'info'
+                    ? 'bg-blue-50 text-blue-800'
+                    : accountsUpdateResult.type === 'success'
+                    ? 'bg-green-50 text-green-800'
+                    : 'bg-yellow-50 text-yellow-800'
+                }`}
+              >
+                {accountsUpdateResult.type === 'info' ? (
+                  accountsUpdateResult.message
+                ) : (
+                  <>
+                    <p className="font-semibold mb-1">
+                      Se actualizaron {accountsUpdateResult.updated} cuenta{accountsUpdateResult.updated !== 1 ? 's' : ''} correctamente,&nbsp;
+                      {accountsUpdateResult.failed.length} fallaron.
+                    </p>
+                    {accountsUpdateResult.failed.length > 0 && (
+                      <p>Cuentas con error: {accountsUpdateResult.failed.join(', ')}</p>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+            <div className="flex flex-wrap gap-4">
+              <button
+                onClick={() => setConfirmModal({ isOpen: true, status: 'ACTIVO' })}
+                disabled={customer.status === 'ACTIVO' || updating}
+                className="bg-green-800 text-white px-4 py-2 rounded hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+              >
+                Activar
+              </button>
+              <button
+                onClick={() => setConfirmModal({ isOpen: true, status: 'INACTIVO' })}
+                disabled={customer.status === 'INACTIVO' || updating}
+                className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+              >
+                Inactivar
+              </button>
+              <button
+                onClick={() => setConfirmModal({ isOpen: true, status: 'SUSPENDIDO' })}
+                disabled={customer.status === 'SUSPENDIDO' || updating}
+                className="bg-red-900 text-white px-4 py-2 rounded hover:bg-red-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+              >
+                Suspender
+              </button>
+            </div>
+          </div>
+
           <div className="bg-white p-6 rounded-lg shadow">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-2xl font-bold">Cuentas</h2>
@@ -133,10 +277,10 @@ export const CustomerDetailPage = () => {
                   <tbody>
                     {accounts.map((account) => (
                       <tr key={account.accountNumber} className="border-b hover:bg-gray-50">
-                        <td className="p-3 font-semibold">{account.accountNumber}</td>
-                        <td className="p-3">{account.accountSubtypeDescription}</td>
-                        <td className="p-3">{account.branchName}</td>
-                        <td className="p-3">{formatCurrency(account.availableBalance)}</td>
+                        <td className="p-3 font-semibold">{account.accountNumber || '—'}</td>
+                        <td className="p-3">{account.accountSubtypeDescription || account.accountType || '—'}</td>
+                        <td className="p-3">{account.branchName || '—'}</td>
+                        <td className="p-3">{account.availableBalance != null ? formatCurrency(account.availableBalance) : '—'}</td>
                         <td className="p-3">
                           <StatusBadge status={account.status} />
                         </td>
@@ -159,6 +303,20 @@ export const CustomerDetailPage = () => {
           </div>
         </>
       )}
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title="Confirmar cambio de estado"
+        message={
+          confirmModal.status === 'ACTIVO'
+            ? '¿Estás seguro de activar este cliente?'
+            : `¿Deseas cambiar el estado del cliente a ${confirmModal.status}?`
+        }
+        onConfirm={() => handleStatusChange(confirmModal.status)}
+        onCancel={() => setConfirmModal({ isOpen: false, status: null })}
+        confirmText="Sí, cambiar"
+        cancelText="Cancelar"
+      />
     </div>
   );
 };

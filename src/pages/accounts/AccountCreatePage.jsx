@@ -8,6 +8,7 @@ import { validateCurrency } from '../../helpers/validators';
 import { ACCOUNT_TYPES } from '../../constants/accountTypes';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { CustomerSelector } from '../../components/common/CustomerSelector';
+import BackButton from '../../components/ui/BackButton';
 const ACCOUNT_MINIMUMS = { 1: 10, 2: 100, 3: 0 };
 
 function formatCustomerType(type) {
@@ -150,7 +151,7 @@ export const AccountCreatePage = () => {
       selectedCustomer.status === 'APROBADO' ||
       selectedCustomer.status === 'ACTIVO';
     if (!kycAprobado) {
-      setError('El cliente debe tener estado KYC aprobado para crear una cuenta');
+      setError('Este cliente no está habilitado para abrir cuentas. Completa el proceso de verificación antes de continuar.');
       return false;
     }
 
@@ -245,6 +246,7 @@ export const AccountCreatePage = () => {
 
   return (
     <div className="max-w-2xl mx-auto">
+      <BackButton to={prefilledCustomerId ? `/clientes/${prefilledCustomerId}` : '/clientes'} />
       <h1 className="text-3xl font-bold mb-6">Crear Nueva Cuenta</h1>
 
       {error && (
@@ -317,11 +319,11 @@ export const AccountCreatePage = () => {
               <div className="flex items-start gap-3">
                 <Lock size={20} strokeWidth={1.5} color="#dc2626" />
                 <div>
-                  <p className="font-bold text-red-800">KYC no aprobado</p>
+                  <p className="font-bold text-red-800">Cliente no habilitado</p>
                   <p className="text-red-700 text-sm mt-1">
-                    El cliente debe tener estado KYC "APROBADO" para abrir una
-                    cuenta. Por favor, completa el proceso de KYC antes de
-                    continuar.
+                    Este cliente no está habilitado para abrir cuentas. Verifica
+                    que esté habilitado y completa el proceso de verificación
+                    antes de continuar.
                   </p>
                 </div>
               </div>

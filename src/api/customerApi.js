@@ -18,3 +18,6 @@ export const updateCustomer = (id, data) =>
 
 export const getCustomerSubtypesByType = (customerType) =>
   axiosInstance.get(`/customer-subtypes/type/${customerType}`);
+
+export const updateCustomerStatus = (customerId, status) =>
+  axiosInstance.patch(`/customers/${customerId}/status/${status}`);

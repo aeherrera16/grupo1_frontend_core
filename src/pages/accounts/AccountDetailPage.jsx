@@ -4,7 +4,6 @@ import { getAccount, activateAccount, inactivateAccount, blockAccount, suspendAc
 import { getTransactionHistory } from '../../api/transactionApi';
 import { formatCurrency, formatDate, formatDateTime, formatStatus } from '../../helpers/formatters';
 import StatusBadge from '../../components/ui/StatusBadge';
-import ConfirmModal from '../../components/ui/ConfirmModal';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 
 export const AccountDetailPage = () => {
@@ -14,65 +13,53 @@ export const AccountDetailPage = () => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [actionLoading, setActionLoading] = useState(false);
-  const [confirmModal, setConfirmModal] = useState({ isOpen: false, action: null });
   const [historyError, setHistoryError] = useState(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setHistoryError(null);
+  const fetchAccount = async () => {
+    setHistoryError(null);
+    try {
+      const accountResponse = await getAccount(accountNumber);
+      setAccount(accountResponse.data);
+
       try {
-        const accountResponse = await getAccount(accountNumber);
-        setAccount(accountResponse.data);
-
-        // Cargar últimas transacciones
-        try {
-          const transactionsResponse = await getTransactionHistory(accountNumber);
-          // Tomar solo las últimas 10
-          setTransactions((transactionsResponse.data || []).slice(0, 10));
-        } catch (txErr) {
-          if (import.meta.env.DEV) {
-            console.warn('No se pudo cargar el historial de transacciones:', txErr);
-          }
-          setTransactions([]);
-          setHistoryError('No se pudo cargar el historial. Intente más tarde.');
+        const transactionsResponse = await getTransactionHistory(accountNumber);
+        setTransactions((transactionsResponse.data || []).slice(0, 10));
+      } catch (txErr) {
+        if (import.meta.env.DEV) {
+          console.warn('No se pudo cargar el historial de transacciones:', txErr);
         }
-      } catch (err) {
-        setError(err.response?.data?.message || 'Error al cargar cuenta');
-      } finally {
-        setLoading(false);
+        setTransactions([]);
+        setHistoryError('No se pudo cargar el historial. Intente más tarde.');
       }
-    };
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error al cargar cuenta');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchData();
+  useEffect(() => {
+    fetchAccount();
   }, [accountNumber]);
 
-  const handleStateChange = async (action) => {
-    setActionLoading(true);
+  const handleStatusChange = async (action, apiCall, successMessage) => {
+    if (!window.confirm(`¿Estás seguro de ${action} esta cuenta?`)) return;
+    setLoading(true);
     try {
-      let response;
-      switch (action) {
-        case 'activate':
-          response = await activateAccount(accountNumber);
-          break;
-        case 'inactivate':
-          response = await inactivateAccount(accountNumber);
-          break;
-        case 'block':
-          response = await blockAccount(accountNumber);
-          break;
-        case 'suspend':
-          response = await suspendAccount(accountNumber);
-          break;
-        default:
-          return;
+      await apiCall(accountNumber);
+      await fetchAccount();
+      alert(successMessage);
+    } catch (error) {
+      const status = error.response?.status;
+      if (status === 403) {
+        alert(`No tienes permiso para ${action} cuentas. El backend ha rechazado la petición (403). Contacta al administrador del sistema.`);
+      } else if (status === 404) {
+        alert(`Cuenta no encontrada.`);
+      } else {
+        alert(`Error al ${action}: ${error.response?.data?.message || error.message}`);
       }
-      setAccount(response.data);
-      setConfirmModal({ isOpen: false, action: null });
-    } catch (err) {
-      setError(err.response?.data?.message || 'Error al cambiar estado');
     } finally {
-      setActionLoading(false);
+      setLoading(false);
     }
   };
 
@@ -141,30 +128,30 @@ export const AccountDetailPage = () => {
             <h3 className="font-bold mb-4">Cambiar Estado</h3>
             <div className="flex flex-wrap gap-3">
               <button
-                onClick={() => setConfirmModal({ isOpen: true, action: 'activate' })}
-                disabled={account.status === 'ACTIVA' || actionLoading}
-                className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 disabled:bg-gray-400"
+                onClick={() => handleStatusChange('activar', activateAccount, 'Cuenta activada correctamente')}
+                disabled={account.status === 'ACTIVA' || loading}
+                className="bg-green-800 text-white px-4 py-2 rounded hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
               >
                 Activar
               </button>
               <button
-                onClick={() => setConfirmModal({ isOpen: true, action: 'inactivate' })}
-                disabled={account.status === 'INACTIVO' || actionLoading}
-                className="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700 disabled:bg-gray-400"
+                onClick={() => handleStatusChange('inactivar', inactivateAccount, 'Cuenta inactivada correctamente')}
+                disabled={account.status === 'INACTIVO' || loading}
+                className="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
               >
                 Inactivar
               </button>
               <button
-                onClick={() => setConfirmModal({ isOpen: true, action: 'block' })}
-                disabled={account.status === 'BLOQUEADO' || actionLoading}
-                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 disabled:bg-gray-400"
+                onClick={() => handleStatusChange('bloquear', blockAccount, 'Cuenta bloqueada correctamente')}
+                disabled={account.status === 'BLOQUEADO' || loading}
+                className="bg-red-900 text-white px-4 py-2 rounded hover:bg-red-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
               >
                 Bloquear
               </button>
               <button
-                onClick={() => setConfirmModal({ isOpen: true, action: 'suspend' })}
-                disabled={account.status === 'SUSPENDIDO' || actionLoading}
-                className="bg-orange-600 text-white px-4 py-2 rounded hover:bg-orange-700 disabled:bg-gray-400"
+                onClick={() => handleStatusChange('suspender', suspendAccount, 'Cuenta suspendida correctamente')}
+                disabled={account.status === 'SUSPENDIDO' || loading}
+                className="bg-red-900 text-white px-4 py-2 rounded hover:bg-red-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
               >
                 Suspender
               </button>
@@ -225,19 +212,6 @@ export const AccountDetailPage = () => {
         </>
       )}
 
-      <ConfirmModal
-        isOpen={confirmModal.isOpen}
-        title="Confirmar cambio de estado"
-        message={
-          confirmModal.action === 'activate'
-            ? '¿Estás seguro de activar esta cuenta?'
-            : `¿Desea cambiar el estado de esta cuenta a ${confirmModal.action?.toUpperCase()}?`
-        }
-        onConfirm={() => handleStateChange(confirmModal.action)}
-        onCancel={() => setConfirmModal({ isOpen: false, action: null })}
-        confirmText="Sí, cambiar"
-        cancelText="Cancelar"
-      />
     </div>
   );
 };
