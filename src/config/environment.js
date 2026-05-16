@@ -1,7 +1,7 @@
 const ENV = {
-  // En desarrollo: URL relativa para proxy de Vite; en producción: URL absoluta del backend
-  API_BASE_URL: import.meta.env.VITE_API_BASE_URL ||
-    (import.meta.env.DEV ? '/core/v1' : 'http://localhost:8080/core/v1'),
+  API_BASE_URL: import.meta.env.VITE_API_BASE_URL
+    ? `${import.meta.env.VITE_API_BASE_URL}/core/v1`
+    : '/core/v1',
 
   API_TIMEOUT: import.meta.env.VITE_API_TIMEOUT || 10000,
   APP_NAME: import.meta.env.VITE_APP_NAME || 'Banquito Intranet',

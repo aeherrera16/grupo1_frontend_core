@@ -1,6 +1,6 @@
-const coreBaseUrl = import.meta.env.VITE_CORE_API_URL || 'http://localhost:8080';
-const switchBaseUrl = import.meta.env.VITE_SWITCH_API_URL || 'http://localhost:8081';
-const sftpBaseUrl = import.meta.env.VITE_SFTP_API_URL || 'http://localhost:8082';
+const coreBaseUrl = import.meta.env.VITE_API_BASE_URL || '';
+const switchBaseUrl = import.meta.env.VITE_SWITCH_BASE_URL || (import.meta.env.DEV ? 'http://localhost:8081' : '');
+const sftpBaseUrl = import.meta.env.VITE_SFTP_BASE_URL || (import.meta.env.DEV ? 'http://localhost:8082' : '');
 
 async function parseResponse(response) {
   const contentType = response.headers.get('content-type') || '';
