@@ -27,7 +27,7 @@ export function DataTable({ columns, data, loading = false }) {
         </thead>
         <tbody>
           {data.map((row, idx) => (
-            <tr key={idx}>
+            <tr key={row.id ?? row.key ?? idx}>
               {columns.map((column) => (
                 <td key={column.key}>
                   {column.render ? column.render(row[column.key], row) : row[column.key]}

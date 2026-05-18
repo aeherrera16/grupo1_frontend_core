@@ -12,7 +12,7 @@ export function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    document.title = 'Login - Intranet Banquito';
+    document.title = 'Intranet Banquito';
     if (isAuthenticated) {
       navigate('/dashboard', { replace: true });
     }

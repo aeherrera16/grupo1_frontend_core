@@ -65,7 +65,10 @@ export const AccountDetailPage = () => {
       const status = err.response?.status;
       let text;
       if (status === 403) {
-        text = `No tienes permiso para ${action} cuentas. El backend ha rechazado la petición (403). Contacta al administrador del sistema.`;
+        const backendMsg = err.response?.data?.error || err.response?.data?.message || null;
+        text = backendMsg
+          ? `No tienes permiso para ${action} cuentas: ${backendMsg}`
+          : `No tienes permiso para ${action} cuentas. El backend ha rechazado la petición (403). Contacta al administrador del sistema.`;
       } else if (status === 404) {
         text = 'Cuenta no encontrada.';
       } else {
@@ -211,7 +214,7 @@ export const AccountDetailPage = () => {
                   </thead>
                   <tbody>
                     {transactions.map((tx, idx) => (
-                      <tr key={idx} className="border-b hover:bg-gray-50">
+                      <tr key={tx.id ?? tx.transactionUuid ?? idx} className="border-b hover:bg-gray-50">
                         <td className="p-3">{formatDateTime(tx.date)}</td>
                         <td className="p-3">
                           <span className={tx.type === 'DEBITO' ? 'text-red-600' : 'text-green-600'}>

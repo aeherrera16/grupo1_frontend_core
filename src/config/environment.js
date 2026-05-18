@@ -53,7 +53,7 @@ export const ENDPOINTS = {
   },
 
   HOLIDAYS: {
-    // Este endpoint está en /api/holidays, no en /core/v1/holidays
+
     CHECK_BUSINESS_DAY: (date) => `/api/holidays/is-business-day?date=${date}`,
   },
 

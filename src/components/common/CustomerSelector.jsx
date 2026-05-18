@@ -12,11 +12,12 @@ function useDebounce(value, delay) {
 }
 
 function buildDisplayName(customer) {
+  // For juridical (company) customers the razón social is in legalName
+  if (customer.legalName) return customer.legalName;
   if (customer.fullName) return customer.fullName;
   if (customer.firstName || customer.lastName) {
     return `${customer.firstName ?? ''} ${customer.lastName ?? ''}`.trim();
   }
-  if (customer.legalName) return customer.legalName;
   if (customer.businessName) return customer.businessName;
   return String(customer.id);
 }

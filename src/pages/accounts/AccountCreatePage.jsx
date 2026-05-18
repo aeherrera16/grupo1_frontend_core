@@ -19,11 +19,11 @@ function formatCustomerType(type) {
 
 function buildCustomerName(customer) {
   return (
+    customer.legalName ||
     customer.fullName ||
     (customer.firstName
       ? `${customer.firstName} ${customer.lastName || ''}`.trim()
       : null) ||
-    customer.legalName ||
     customer.businessName ||
     customer.name ||
     ''

@@ -149,16 +149,6 @@ export const CustomerSearchPage = () => {
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Estado KYC</p>
-                  <span className={`inline-block mt-0.5 px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                    searchResult.status === 'APROBADO' || searchResult.status === 'ACTIVO'
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-red-100 text-red-700'
-                  }`}>
-                    {searchResult.status}
-                  </span>
-                </div>
-                <div>
                   <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide">Email</p>
                   <p className="text-sm font-semibold text-slate-800 mt-0.5">{searchResult.email}</p>
                 </div>

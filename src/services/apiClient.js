@@ -94,12 +94,12 @@ export async function setFavoriteAccount(accountNumber) {
 export async function debit(accountNumber, amount, description = 'Retiro en ventanilla') {
   return coreRequest('/core/v1/transactions/debits', {
     method: 'POST',
-    body: JSON.stringify({ 
-      accountNumber, 
-      amount, 
+    body: JSON.stringify({
+      accountNumber,
+      amount,
       transactionUuid: crypto.randomUUID(),
       subtypeCode: 'WITHDRAW',
-      description 
+      description
     }),
   });
 }
@@ -107,12 +107,12 @@ export async function debit(accountNumber, amount, description = 'Retiro en vent
 export async function credit(accountNumber, amount, description = 'Deposito en ventanilla') {
   return coreRequest('/core/v1/transactions/credits', {
     method: 'POST',
-    body: JSON.stringify({ 
-      accountNumber, 
-      amount, 
+    body: JSON.stringify({
+      accountNumber,
+      amount,
       transactionUuid: crypto.randomUUID(),
       subtypeCode: 'DEPOSIT',
-      description 
+      description
     }),
   });
 }
@@ -120,10 +120,10 @@ export async function credit(accountNumber, amount, description = 'Deposito en v
 export async function transfer(origin, destination, amount, uuid, description = 'Transferencia bancaria') {
   return coreRequest('/core/v1/transactions/transfers', {
     method: 'POST',
-    body: JSON.stringify({ 
-      originAccountNumber: origin, 
-      destinationAccountNumber: destination, 
-      amount, 
+    body: JSON.stringify({
+      originAccountNumber: origin,
+      destinationAccountNumber: destination,
+      amount,
       transactionUuid: uuid || crypto.randomUUID(),
       subtypeCode: 'TRANSFER',
       description

@@ -9,6 +9,9 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner';
 
 const emptyInfo = { checking: false, found: null, holder: '', status: '', error: '' };
 
+const createTransactionUuid = () =>
+  globalThis.crypto?.randomUUID?.() || `txn-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
 const SpinIcon = () => (
   <svg className="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24">
     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -202,6 +205,12 @@ export const TransactionFormPage = () => {
     );
   };
 
+  const getApiErrorMessage = (err, fallback) =>
+    err?.response?.data?.error ||
+    err?.response?.data?.message ||
+    err?.message ||
+    fallback;
+
   const handleDebit = async (e) => {
     e.preventDefault();
     setError('');
@@ -232,7 +241,7 @@ export const TransactionFormPage = () => {
         accountNumber: debitForm.accountNumber,
         amount: parseFloat(debitForm.amount),
         subtypeCode: debitForm.subtypeCode,
-        transactionUuid: crypto.randomUUID(),
+        transactionUuid: createTransactionUuid(),
         description: debitForm.description || 'Débito',
       });
 
@@ -250,7 +259,7 @@ export const TransactionFormPage = () => {
       });
       setDebitAccInfo(emptyInfo);
     } catch (err) {
-      setError(err.response?.data?.message || 'Error al procesar débito');
+      setError(getApiErrorMessage(err, 'Error al procesar débito'));
     } finally {
       setLoading(false);
     }
@@ -281,7 +290,7 @@ export const TransactionFormPage = () => {
         accountNumber: creditForm.accountNumber,
         amount: parseFloat(creditForm.amount),
         subtypeCode: creditForm.subtypeCode,
-        transactionUuid: crypto.randomUUID(),
+        transactionUuid: createTransactionUuid(),
         description: creditForm.description || 'Crédito',
       });
 
@@ -299,7 +308,7 @@ export const TransactionFormPage = () => {
       });
       setCreditAccInfo(emptyInfo);
     } catch (err) {
-      setError(err.response?.data?.message || 'Error al procesar crédito');
+      setError(getApiErrorMessage(err, 'Error al procesar crédito'));
     } finally {
       setLoading(false);
     }
@@ -327,10 +336,10 @@ export const TransactionFormPage = () => {
 
     try {
       const response = await transfer({
-        originAccountNumber: transferForm.sourceAccount,
-        destinationAccountNumber: transferForm.destinationAccount,
+        originAccountNumber: transferForm.sourceAccount.trim(),
+        destinationAccountNumber: transferForm.destinationAccount.trim(),
         amount: parseFloat(transferForm.amount),
-        transactionUuid: crypto.randomUUID(),
+        transactionUuid: createTransactionUuid(),
         subtypeCode: 'TRANSFER',
         description: transferForm.description || 'Transferencia',
       });
@@ -351,7 +360,7 @@ export const TransactionFormPage = () => {
       setSourceInfo(emptyInfo);
       setDestInfo(emptyInfo);
     } catch (err) {
-      setError(err.response?.data?.message || 'Error al procesar transferencia');
+      setError(getApiErrorMessage(err, 'Error al procesar transferencia'));
     } finally {
       setLoading(false);
     }
