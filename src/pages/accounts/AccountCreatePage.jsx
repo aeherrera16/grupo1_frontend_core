@@ -9,7 +9,10 @@ import { ACCOUNT_TYPES } from '../../constants/accountTypes';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { CustomerSelector } from '../../components/common/CustomerSelector';
 import BackButton from '../../components/ui/BackButton';
-const ACCOUNT_MINIMUMS = { 1: 10, 2: 100, 3: 0 };
+function resolveMinimumBalance(customer) {
+  const type = customer?.type || customer?.customerType || customer?.typeEntity;
+  return type === 'JURIDICO' ? 100 : 10;
+}
 
 function formatCustomerType(type) {
   if (type === 'NATURAL') return 'Persona Natural';
@@ -171,7 +174,7 @@ export const AccountCreatePage = () => {
       return false;
     }
 
-    const minAmount = ACCOUNT_MINIMUMS[accountSubtypeId] ?? 0;
+    const minAmount = resolveMinimumBalance(selectedCustomer);
     if (!formData.initialBalance) {
       setError(`El monto inicial es requerido. Mínimo: $${minAmount} USD`);
       return false;
@@ -416,13 +419,12 @@ export const AccountCreatePage = () => {
               onChange={handleInputChange}
               placeholder="0.00"
               step="0.01"
-              min={ACCOUNT_MINIMUMS[parseInt(formData.accountSubtypeId)] ?? 0}
+              min={resolveMinimumBalance(selectedCustomer)}
               className="w-full p-2 border rounded"
               required
             />
             <p className="text-gray-600 text-sm mt-1">
-              Monto mínimo: $
-              {ACCOUNT_MINIMUMS[parseInt(formData.accountSubtypeId)] ?? 0} USD
+              Monto mínimo: ${resolveMinimumBalance(selectedCustomer)} USD
             </p>
           </div>
 
