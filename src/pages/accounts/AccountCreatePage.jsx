@@ -80,7 +80,6 @@ export const AccountCreatePage = () => {
           setCustomerAccounts([]);
         }
       } catch {
-        // silent — user can still search manually
       } finally {
         setCustomerLoading(false);
       }
